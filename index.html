@@ -1,0 +1,1642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gravity Lab | Mr. Ward's Physics</title>
+<style>
+:root{
+  --navy:#0B2E6B; --blue:#0B5FD8; --red:#D9342B; --amber:#F5A300; --green:#12875F;
+  --ink:#10233f; --paper:#F1F5FB; --line:#C6D3E8; --space:#061633;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;background:var(--paper);color:var(--ink);font-size:16px;line-height:1.35}
+.hidden,[hidden]{display:none !important}
+.key{color:var(--red);font-weight:700}
+sup{font-size:.7em;line-height:0}
+
+/* header */
+.top{background:var(--navy);color:#fff;display:flex;align-items:center;gap:14px;padding:8px 16px}
+.top h1{margin:0;font-size:26px;letter-spacing:.2px}
+.top p{margin:0;font-size:14px;opacity:.85}
+.top .spacer{flex:1}
+.logo{width:48px;height:48px;border-radius:50%;background:#fff;padding:2px;flex:none;cursor:pointer}
+.logo img{width:100%;height:100%;display:block}
+
+/* layout */
+.app{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:12px;padding:12px;max-width:1600px;margin:0 auto}
+@media(max-width:1020px){.app{grid-template-columns:minmax(0,1fr)}}
+.stage{display:flex;flex-direction:column;gap:8px;min-width:0}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.rowlabel{font-weight:700;color:var(--navy)}
+
+/* controls */
+button,select,input{font:inherit;color:inherit}
+.btn{background:var(--blue);color:#fff;border:2px solid var(--blue);border-radius:8px;padding:6px 12px;cursor:pointer;font-weight:700}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:#fff;color:var(--navy);border-color:var(--navy)}
+.btn.ghost.light{background:transparent;color:#fff;border-color:#fff}
+.btn[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.btn.danger{background:#fff;color:var(--red);border-color:var(--red)}
+.btn.sm{padding:3px 9px;font-size:14px}
+button:focus-visible,select:focus-visible,input:focus-visible,canvas:focus-visible,summary:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+select,input[type=number],input[type=text]{background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:5px 8px}
+input[type=range]{accent-color:var(--blue);vertical-align:middle}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:3px 11px 3px 6px;cursor:pointer;font-weight:700;color:var(--navy)}
+.chip i{width:16px;height:16px;border-radius:50%;display:inline-block;border:1px solid rgba(0,0,0,.25)}
+.chip[aria-pressed="true"]{border-color:var(--blue);background:#E3EEFF}
+.tog{display:inline-flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:3px 12px 3px 6px;cursor:pointer;font-weight:700;color:var(--navy)}
+.tog .sw{width:34px;height:18px;border-radius:9px;background:#9db0cf;position:relative;flex:none;transition:background .15s}
+.tog .sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .15s}
+.tog[aria-pressed="true"]{border-color:var(--blue)}
+.tog[aria-pressed="true"] .sw{background:var(--blue)}
+.tog[aria-pressed="true"] .sw::after{left:18px}
+.speed{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--navy)}
+.panelrow{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:6px 10px}
+
+/* canvas */
+.canvaswrap{position:relative;height:clamp(340px,60vh,660px);border-radius:12px;overflow:hidden;background:var(--space);border:2px solid var(--navy)}
+canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.hud{position:absolute;color:#fff;font-size:14px;text-shadow:0 1px 3px #000;pointer-events:none}
+#hudTime{left:10px;top:8px;max-width:70%}
+#hudScale{left:10px;bottom:8px}
+#scaleBar{height:6px;border:2px solid #fff;border-top:0;margin-bottom:2px}
+#hudHint{left:50%;transform:translateX(-50%);top:8px;background:rgba(6,22,51,.78);border-radius:8px;padding:4px 10px;text-align:center}
+#arrowNote{right:10px;top:8px;color:#ffb3ad;font-weight:700;max-width:45%;text-align:right}
+#murphyBox{position:absolute;right:8px;bottom:8px;display:flex;align-items:flex-end;gap:6px;max-width:60%}
+#bubble{background:#fff;color:var(--ink);border-radius:12px;padding:7px 10px;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,.4);opacity:0;transition:opacity .25s;pointer-events:none}
+#bubble.show{opacity:1}
+#murphyFace{width:58px;height:58px;border-radius:50%;background:#fff;border:2px solid var(--navy);cursor:pointer;flex:none;padding:0}
+#murphyFace img{width:100%;height:100%;display:block}
+
+/* side */
+.side{background:#fff;border:2px solid var(--navy);border-radius:12px;display:flex;flex-direction:column;min-width:0;align-self:start}
+.tabs{display:flex;background:var(--navy);border-radius:9px 9px 0 0;overflow:hidden}
+.tabs button{flex:1;background:transparent;color:#cfe0ff;border:0;padding:9px 4px;font-weight:700;cursor:pointer;border-bottom:4px solid transparent}
+.tabs button[aria-selected="true"]{background:#fff;color:var(--navy);border-bottom-color:var(--red)}
+.tabpanel{padding:10px 12px 14px;max-height:calc(100vh - 150px);overflow:auto}
+@media(max-width:1020px){.tabpanel{max-height:none}}
+.tabpanel h2{margin:0 0 4px;font-size:21px;color:var(--navy)}
+.tabpanel h3{margin:12px 0 4px;font-size:16px;color:var(--navy)}
+.small{font-size:14px;color:#42597e}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{border-bottom:1px solid var(--line);padding:4px 5px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--navy);background:#EAF1FC;position:sticky;top:0}
+tr.sub td{background:#F6F9FE;color:var(--navy);font-weight:700;text-align:left;white-space:normal}
+tr.me td{background:#FFF4D6}
+td.lb{font-weight:700;color:var(--navy);font-size:15px}
+.frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;margin:0 .3em;text-align:center}
+.frac>.n{padding:0 .35em .12em;border-bottom:2px solid currentColor}
+.frac>.d{padding:.12em .35em 0}
+.eq{margin:6px 0;font-size:17px}
+.math{background:#F6F9FE;border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;margin-top:8px}
+.big{font-size:20px;font-weight:700}
+.callout{border-left:5px solid var(--red);background:#FFF1F0;padding:6px 10px;border-radius:0 8px 8px 0;margin:8px 0}
+.pull{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dotted var(--line);padding:3px 0;font-size:14px}
+.field{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:6px 0}
+.chal{border:1.5px solid var(--line);border-radius:10px;padding:8px 10px;margin:8px 0}
+.chal.done{border-color:var(--green);background:#EAF8F2}
+.chal .q{font-weight:700;color:var(--navy)}
+.chal .hint{font-size:13px;color:#42597e;margin:3px 0}
+.chal input[type=text]{width:140px}
+#pairSvg{width:100%;height:auto;display:block;background:#061633;border-radius:10px}
+dialog{border:3px solid var(--navy);border-radius:14px;max-width:560px;padding:16px 20px}
+dialog::backdrop{background:rgba(6,22,51,.6)}
+dialog h2{margin-top:0;color:var(--navy)}
+footer{text-align:center;color:#5b6f90;font-size:13px;padding:6px 0 14px}
+.canvaswrap:fullscreen,.canvaswrap.fs-fallback{height:100vh;width:100vw;border-radius:0;border:0}
+.canvaswrap:-webkit-full-screen{height:100vh;width:100vw;border-radius:0;border:0}
+.canvaswrap.fs-fallback{position:fixed;inset:0;z-index:100}
+#fsBar{display:none;position:absolute;left:50%;transform:translateX(-50%);bottom:12px;gap:6px;align-items:center;flex-wrap:wrap;justify-content:center;background:rgba(6,22,51,.88);border:1.5px solid rgba(255,255,255,.35);border-radius:12px;padding:6px 10px;color:#fff;max-width:calc(100% - 150px);z-index:5;transition:opacity .3s}
+.is-fs #fsBar{display:flex}
+.is-fs #murphyBox{bottom:92px}
+.is-fs .hud{font-size:19px}
+.is-fs #hudSel{top:36px}
+.is-fs #hudMode{bottom:110px}
+.is-fs.fs-idle #fsBar{opacity:0;pointer-events:none}
+#fsBar .btn{padding:3px 10px;font-size:15px}
+#fsBar .fskeys{font-size:13px;opacity:.9}
+kbd{background:#fff;color:var(--navy);border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 6px;font:inherit;font-size:.9em;font-weight:700}
+.keyhint{font-size:14px;color:#42597e}
+.keyhint kbd{margin:0 1px}
+#hudSel{left:10px;top:30px;max-width:70%}
+#hudMode{left:50%;transform:translateX(-50%);bottom:56px;font-weight:700;background:rgba(6,22,51,.78);border-radius:8px;padding:2px 12px}
+@media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="logo" id="logo" title="Murphy says hi" role="img" aria-label="Murphy the dog"></div>
+  <div>
+    <h1>Gravity Lab</h1>
+    <p>Unit 2 Gravity with Mr. Ward</p>
+  </div>
+  <div class="spacer"></div>
+  <button class="btn ghost light" id="btnHelp">How to use</button>
+</header>
+
+<main class="app">
+  <section class="stage" aria-label="Gravity sandbox">
+    <div class="row" id="addRow">
+      <span class="rowlabel">Add a body:</span>
+      <div class="chips" id="chips" role="group" aria-label="Choose a body to add"></div>
+    </div>
+    <div class="row panelrow hidden" id="customRow">
+      <label for="customMass" class="rowlabel">Custom mass</label>
+      <input type="range" id="customMass" min="18" max="31" step="0.05" value="24">
+      <span id="customMassOut" class="key"></span>
+    </div>
+
+    <div class="row" id="simRow">
+      <label class="sr" for="presetSel" style="position:absolute;left:-9999px">Load a scene</label>
+      <select id="presetSel" aria-label="Load a scene">
+        <option value="">Load a scene...</option>
+        <option value="sunearth">Sun and Earth</option>
+        <option value="earthmoon">Earth and Moon</option>
+        <option value="jupiter">Jupiter and its moons</option>
+        <option value="murphyorbit">Murphy orbits Earth</option>
+        <option value="murphyfall">Murphy falls to Earth</option>
+        <option value="empty">Empty sandbox</option>
+      </select>
+      <button class="btn" id="btnPlay">Pause</button>
+      <button class="btn ghost" id="btnSlow" aria-pressed="false">Slow motion</button>
+      <label class="speed">Speed <input type="range" id="speed" min="0" max="9" step="0.05" aria-label="Simulation speed"></label>
+      <button class="btn ghost" id="zoomOut" aria-label="Zoom out">&minus;</button>
+      <button class="btn ghost" id="zoomIn" aria-label="Zoom in">+</button>
+      <button class="btn ghost" id="btnFit">Fit all</button>
+      <button class="btn ghost" id="btnFs" title="Show only the canvas (key: F)">Full screen</button>
+      <button class="btn ghost" id="btnHand" aria-pressed="false" title="Drag to move the view (or hold Shift)">Move view</button>
+      <select id="scaleSel" aria-label="View scale">
+        <option value="moon">Earth&ndash;Moon scale</option>
+        <option value="jupiter">Jupiter&ndash;moons scale</option>
+        <option value="solar" selected>Solar-system scale</option>
+        <option value="surface">Near-Earth scale</option>
+      </select>
+      <select id="followSel" aria-label="Camera">
+        <option value="none">Camera: fixed</option>
+        <option value="com">Camera: follow center of mass</option>
+        <option value="selected">Camera: follow selected</option>
+      </select>
+      <button class="btn ghost" id="btnReset">Reset scene</button>
+      <button class="btn danger" id="btnClear">Clear all</button>
+    </div>
+
+    <div class="canvaswrap" id="wrap">
+      <canvas id="cv" tabindex="0" aria-label="Gravity sandbox. Click to add a body. Drag to set its starting velocity."></canvas>
+      <div class="hud" id="hudTime"></div>
+      <div class="hud" id="hudSel"></div>
+      <div class="hud" id="hudMode"></div>
+      <div class="hud" id="hudHint"></div>
+      <div class="hud" id="arrowNote"></div>
+      <div class="hud" id="hudScale"><div id="scaleBar"></div><span id="scaleLbl"></span></div>
+      <div id="fsBar" role="toolbar" aria-label="Full screen controls">
+        <button class="btn sm" id="fsPlay">Pause</button>
+        <button class="btn ghost sm" id="fsBack" aria-label="Rewind (hold)">&#9664;&#9664;</button>
+        <button class="btn ghost sm" id="fsFwd" aria-label="Forward (hold)">&#9654;&#9654;</button>
+        <button class="btn ghost sm" id="fsReal" aria-pressed="false">Real numbers</button>
+        <button class="btn ghost sm" id="fsFbd" aria-pressed="false">Force arrows</button>
+        <button class="btn ghost sm" id="fsPair" aria-pressed="false">Pair view</button>
+        <button class="btn danger sm" id="fsExit">Exit full screen</button>
+        <span class="fskeys"><kbd>Space</kbd> pause <kbd>&larr;</kbd><kbd>&rarr;</kbd> time <kbd>&uarr;</kbd><kbd>&darr;</kbd> mass</span>
+      </div>
+      <div id="murphyBox"><div id="bubble" role="status" aria-live="polite"></div><button id="murphyFace" aria-label="Ask Murphy for a tip"></button></div>
+    </div>
+
+    <div class="keyhint" id="keyHint"><b>Keys:</b> <kbd>Space</kbd> pause <kbd>&larr;</kbd><kbd>&rarr;</kbd> go back or forward in time (hold to scrub, Shift for faster) <kbd>&uarr;</kbd><kbd>&darr;</kbd> change the mass of the selected body <kbd>F</kbd> full screen</div>
+    <div class="row" id="togRow">
+      <button class="tog" id="tgReal" aria-pressed="false"><span class="sw"></span>Real numbers</button>
+      <button class="tog" id="tgFbd" aria-pressed="false"><span class="sw"></span>Force arrows (FBD)</button>
+      <button class="tog" id="tgPair" aria-pressed="false"><span class="sw"></span>Pair view</button>
+      <button class="tog" id="tgTrue" aria-pressed="false"><span class="sw"></span>True size</button>
+      <button class="tog" id="tgTrails" aria-pressed="true"><span class="sw"></span>Trails</button>
+      <button class="tog" id="tgVel" aria-pressed="false"><span class="sw"></span>Velocity arrows</button>
+      <button class="tog" id="tgAuto" aria-pressed="false"><span class="sw"></span>Auto circular orbit</button>
+      <button class="tog" id="tgMerge" aria-pressed="true"><span class="sw"></span>Merge on touch</button>
+      <button class="tog" id="tgChal" aria-pressed="false"><span class="sw"></span>Challenges</button>
+    </div>
+
+    <div class="row panelrow hidden" id="arrowRow">
+      <span class="rowlabel">Arrows:</span>
+      <label>Scale
+        <select id="arrowMode"><option value="log">Logarithmic</option><option value="linear">Linear (true proportion)</option></select>
+      </label>
+      <label>Size <input type="range" id="arrowMax" min="30" max="200" step="5" value="70" aria-label="Arrow size"></label>
+      <button class="btn ghost sm" id="btnFitArrows">Fit arrows</button>
+      <label>Show on
+        <select id="fbdWho"><option value="all">all bodies</option><option value="selected">selected body only</option></select>
+      </label>
+      <label>Distances
+        <select id="distSel"><option value="auto">auto</option><option value="m">m</option><option value="km">km</option></select>
+      </label>
+    </div>
+  </section>
+
+  <aside class="side">
+    <div class="tabs" role="tablist" aria-label="Panels">
+      <button role="tab" id="t-body" aria-selected="true" aria-controls="tab-body">Body</button>
+      <button role="tab" id="t-pair" aria-selected="false" aria-controls="tab-pair">Pair</button>
+      <button role="tab" id="t-weigh" aria-selected="false" aria-controls="tab-weigh">Weigh a person</button>
+      <button role="tab" id="t-chal" aria-selected="false" aria-controls="tab-chal" hidden>Challenges</button>
+    </div>
+
+    <!-- BODY -->
+    <div class="tabpanel" id="tab-body" role="tabpanel" aria-labelledby="t-body">
+      <h2 id="selTitle">Click a body to select it</h2>
+      <p class="small" id="selHint">Click empty space to add the body you picked. Drag before you let go to set its starting velocity.</p>
+      <div id="selControls" hidden>
+        <div class="field"><label for="selMul">Change its mass</label>
+          <input type="range" id="selMul" min="-2" max="2" step="0.01" value="0">
+          <span id="selMulOut" class="key"></span></div>
+        <div class="field"><label for="orbitParent">Orbit around</label><select id="orbitParent"></select></div>
+        <div class="field">
+          <button class="btn" id="btnCirc">Make circular orbit</button>
+          <button class="btn ghost" id="btnStopBody">Stop it</button>
+          <button class="btn danger" id="btnRemove">Remove</button>
+        </div>
+      </div>
+      <div id="selNumbers"></div>
+      <div id="allBodies"></div>
+    </div>
+
+    <!-- PAIR -->
+    <div class="tabpanel" id="tab-pair" role="tabpanel" aria-labelledby="t-pair" hidden>
+      <h2>Pair view</h2>
+      <p class="small" id="pairOff">Turn on <b>Pair view</b> to see Newton's third law with two bodies.</p>
+      <div id="pairBody" hidden>
+        <div class="field">
+          <label for="pairA">Body A</label><select id="pairA"></select>
+          <label for="pairB">Body B</label><select id="pairB"></select>
+        </div>
+        <svg id="pairSvg" viewBox="0 0 360 120" role="img" aria-label="Two bodies pulling on each other with equal arrows"></svg>
+        <div class="callout"><span class="key big">The force on A equals the force on B.</span><br>Same size, opposite directions.</div>
+        <table aria-label="Pair forces">
+          <tr><th></th><th>Force on A</th><th>Force on B</th></tr>
+          <tr><td>Size</td><td id="pairFA"></td><td id="pairFB"></td></tr>
+          <tr><td>Direction</td><td id="pairDA"></td><td id="pairDB"></td></tr>
+          <tr><td>Mass</td><td id="pairMA"></td><td id="pairMB"></td></tr>
+          <tr><td>Acceleration</td><td id="pairAA"></td><td id="pairAB"></td></tr>
+        </table>
+        <div class="math" id="pairMath"></div>
+        <p class="callout" id="pairTake"></p>
+      </div>
+    </div>
+
+    <!-- WEIGH -->
+    <div class="tabpanel" id="tab-weigh" role="tabpanel" aria-labelledby="t-weigh" hidden>
+      <h2>Weigh a person</h2>
+      <div class="field">
+        <label for="wLb">Weight on Earth</label>
+        <input type="number" id="wLb" min="1" max="1000" step="1" value="100" style="width:90px"> <span>lb</span>
+        <button class="btn ghost sm" id="btnMurphyW">Weigh Murphy (55 lb)</button>
+      </div>
+      <div class="callout">Your mass: <span class="key big" id="wMass"></span><br><span class="key">Mass stays the same everywhere. Only weight changes.</span></div>
+      <div style="overflow:auto"><table id="wTable" aria-label="Weight on each world"></table></div>
+      <h3>Show the math</h3>
+      <div class="field"><label for="worldSel">World</label><select id="worldSel"></select></div>
+      <div class="math" id="wMath"></div>
+    </div>
+
+    <!-- CHALLENGES -->
+    <div class="tabpanel" id="tab-chal" role="tabpanel" aria-labelledby="t-chal" hidden>
+      <h2>Challenges</h2>
+      <p class="small">Type numbers like <b>1.98e20</b> or <b>1.98 x 10^20</b>. Fractions like <b>1/4</b> work too. <span id="chalCount" class="key"></span></p>
+      <div id="chalList"></div>
+    </div>
+  </aside>
+</main>
+
+<footer>Gravity Lab &middot; Mr. Ward's Physics &middot; G = 6.67 &times; 10<sup>-11</sup> in N m<sup>2</sup>/kg<sup>2</sup></footer>
+
+<dialog id="helpDlg">
+  <h2>How to use Gravity Lab</h2>
+  <p><b>Add a body:</b> pick one above, then click empty space.</p>
+  <p><b>Launch it:</b> click, hold, and drag. The arrow shows where it will be after one second on your screen. Let go to launch.</p>
+  <p><b>Change a body:</b> click it, then use the Body panel. Drag from a body to give it a new velocity.</p>
+  <p><b>Move and zoom:</b> mouse wheel to zoom. Hold Shift and drag, or press <b>Move view</b>, to slide the view.</p>
+  <p><b>Keys:</b> <kbd>Space</kbd> pauses. <kbd>&larr;</kbd> and <kbd>&rarr;</kbd> move time backward and forward (tap for a nudge, hold to scrub, Shift to go faster). <kbd>&uarr;</kbd> and <kbd>&darr;</kbd> change the mass of the selected body. <kbd>F</kbd> toggles full screen and <kbd>Esc</kbd> leaves it.</p>
+  <p><b>Numbers:</b> turn on <span class="key">Real numbers</span> for mass, distance, force, acceleration, and g.</p>
+  <p><b>Forces:</b> turn on <span class="key">Force arrows</span> for one arrow per pull plus the net force. Arrow lengths are logarithmic, so they are not proportional to the force.</p>
+  <p><b>Newton's third law:</b> turn on <span class="key">Pair view</span>.</p>
+  <p><button class="btn" id="btnHelpClose">Got it</button></p>
+</dialog>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================  CONSTANTS  ===================== */
+const G = 6.67e-11;                 // N m^2 / kg^2
+const KG_PER_LB = 0.45359237;
+const G_EARTH = 9.81;               // textbook g used in Unit 2
+const TEXTBOOK_G = { earth: 9.81, moon: 1.62, mars: 3.7, jupiter: 23.1, saturn: 9.0 };
+
+const LIB = {
+  sun:      { name:'Sun',      m:1.989e30, R:6.957e8, c1:'#fff1a8', c2:'#f5a300' },
+  earth:    { name:'Earth',    m:5.98e24,  R:6.38e6,  c1:'#8fd0ff', c2:'#1d6fd1' },
+  moon:     { name:'Moon',     m:7.35e22,  R:1.74e6,  c1:'#f0f0f0', c2:'#8c8c8c' },
+  mars:     { name:'Mars',     m:6.42e23,  R:3.39e6,  c1:'#ffb08c', c2:'#b5421f' },
+  jupiter:  { name:'Jupiter',  m:1.898e27, R:7.149e7, c1:'#f6dcb6', c2:'#b9814a' },
+  saturn:   { name:'Saturn',   m:5.683e26, R:6.027e7, c1:'#f8e9b5', c2:'#c9a24b' },
+  io:       { name:'Io',       m:8.93e22,  R:1.822e6, c1:'#fff6a8', c2:'#d8b400' },
+  europa:   { name:'Europa',   m:4.80e22,  R:1.561e6, c1:'#f7f3ea', c2:'#c9b79a' },
+  ganymede: { name:'Ganymede', m:1.482e23, R:2.634e6, c1:'#d6ccbd', c2:'#7d6f5e' },
+  callisto: { name:'Callisto', m:1.076e23, R:2.410e6, c1:'#aaa095', c2:'#4f4740' },
+  murphy:   { name:'Murphy',   m:25,       R:0.3,     c1:'#d9a566', c2:'#a8742f', minPx:11 },
+  custom:   { name:'Custom',   m:1e24,     R:null,    c1:'#e3bfff', c2:'#7a3fc4' }
+};
+const CHIP_ORDER = ['sun','earth','moon','mars','jupiter','saturn','io','europa','ganymede','callisto','murphy','custom'];
+
+// worlds in the Weigh a person table (textbook g where Unit 2 gives one)
+const WORLDS = [
+  { key:'earth',   name:'Earth',   M:5.98e24,  R:6.38e6,  g:TEXTBOOK_G.earth },
+  { key:'moon',    name:'Moon',    M:7.35e22,  R:1.74e6,  g:TEXTBOOK_G.moon },
+  { key:'mars',    name:'Mars',    M:6.42e23,  R:3.39e6,  g:TEXTBOOK_G.mars },
+  { key:'jupiter', name:'Jupiter', M:1.898e27, R:7.149e7, g:TEXTBOOK_G.jupiter },
+  { key:'saturn',  name:'Saturn',  M:5.683e26, R:6.027e7, g:TEXTBOOK_G.saturn },
+  { key:'sun',     name:'Sun',     M:1.989e30, R:6.957e8, g:null }
+];
+
+const SCALES = {
+  moon:    { mpp:1.9e6, ts:1.57e5 },
+  jupiter: { mpp:6e6,   ts:4e4 },
+  solar:   { mpp:7.5e8, ts:2.1e6 },
+  surface: { mpp:5e4,   ts:600 }
+};
+
+/* =====================  FORMATTING  ===================== */
+const SUPCH = {'0':'\u2070','1':'\u00B9','2':'\u00B2','3':'\u00B3','4':'\u2074','5':'\u2075','6':'\u2076','7':'\u2077','8':'\u2078','9':'\u2079','-':'\u207B'};
+const supText = n => String(n).split('').map(c => SUPCH[c] || c).join('');
+function sciParts(x, sig){
+  const s = x.toExponential(sig - 1);
+  const [m, e] = s.split('e');
+  return { m, e: parseInt(e, 10) };
+}
+function plain(x, sig){
+  const a = Math.abs(x);
+  if (a === 0) return '0';
+  if (a >= 0.01 && a < 1e5){
+    if (a >= 1000) return Number(x.toPrecision(sig)).toLocaleString('en-US');
+    return x.toPrecision(sig);
+  }
+  return null;
+}
+function fmtT(x, sig = 3){
+  if (!isFinite(x)) return '\u221E';
+  const p = plain(x, sig); if (p !== null) return p;
+  const {m, e} = sciParts(x, sig);
+  return `${m} \u00D7 10${supText(e)}`;
+}
+function fmtH(x, sig = 3){
+  if (!isFinite(x)) return '&infin;';
+  const p = plain(x, sig); if (p !== null) return p;
+  const {m, e} = sciParts(x, sig);
+  return `${m} &times; 10<sup>${String(e).replace('-','&minus;')}</sup>`;
+}
+const frac = (n, d) => `<span class="frac"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+function distParts(d){
+  const mode = S.distUnit;
+  const unit = mode === 'auto' ? (d < 1e4 ? 'm' : 'km') : mode;
+  return { v: unit === 'km' ? d / 1000 : d, unit };
+}
+const fmtDistT = d => { const p = distParts(d); return `${fmtT(p.v,4)} ${p.unit}`; };
+const fmtDistH = d => { const p = distParts(d); return `${fmtH(p.v,4)} ${p.unit}`; };
+function durationText(s){
+  const a = Math.abs(s);
+  if (a < 60) return `${(+s.toPrecision(3))} seconds`;
+  if (a < 3600) return `${(+(s/60).toPrecision(3))} minutes`;
+  if (a < 86400) return `${(+(s/3600).toPrecision(3))} hours`;
+  if (a < 365.25*86400) return `${(+(s/86400).toPrecision(3))} days`;
+  return `${(+(s/(365.25*86400)).toPrecision(3))} years`;
+}
+function parseNum(str){
+  let s = String(str).trim().toLowerCase().replace(/,/g,'').replace(/\u00D7/g,'x');
+  if (!s) return NaN;
+  let mt = s.match(/^([+-]?[\d.]+)\s*(?:x|\*)\s*10\s*\^?\s*([+-]?\d+)$/);
+  if (mt) return parseFloat(mt[1]) * Math.pow(10, parseInt(mt[2],10));
+  mt = s.match(/^([+-]?[\d.]+)\s*\/\s*([+-]?[\d.]+)$/);
+  if (mt) return parseFloat(mt[1]) / parseFloat(mt[2]);
+  if (!/^[+-]?(\d+\.?\d*|\.\d+)(e[+-]?\d+)?$/.test(s)) return NaN;
+  return Number(s);
+}
+const clamp = (v,a,b) => Math.min(b, Math.max(a, v));
+const el = id => document.getElementById(id);
+
+/* =====================  STATE  ===================== */
+const S = {
+  bodies: [], nextId: 1, t: 0, nameCount: {},
+  mpp: SCALES.solar.mpp, sceneMpp: SCALES.solar.mpp, timeScale: SCALES.solar.ts,
+  scaleKey: 'solar',
+  paused: false, slowmo: false, pan: {x:0, y:0}, follow: 'none', tool: 'add',
+  selectedId: null, addKey: 'earth', customLog: 24,
+  real: false, fbd: false, pair: false, pairA: null, pairB: null,
+  trueScale: false, trails: true, velArrows: false, autoOrbit: false, merge: true, challenges: false,
+  arrowMode: 'log', arrowMax: 70, fbdWho: 'all', distUnit: 'auto',
+  cal: { logRef: 0, ppd: 20, fmax: 1 },
+  weightLb: 100, lastPreset: 'sunearth', lastArrows: [], O: {x:0,y:0}, OV: {x:0,y:0},
+  solved: {}, circStreak: 0
+};
+const TRAIL_MAX = 1100;
+
+/* =====================  PHYSICS  ===================== */
+function customDensity(m){ return m < 3e26 ? 5000 : (m < 1e29 ? 1300 : 1400); }
+function customRadius(m){ return Math.cbrt(3 * m / (4 * Math.PI * customDensity(m))); }
+function uniqueName(base){
+  const n = (S.nameCount[base] || 0) + 1;
+  S.nameCount[base] = n;
+  return n === 1 && base !== 'Custom' ? base : `${base} ${n}`;
+}
+function addBody(key, x, y, vx = 0, vy = 0, opts = {}){
+  const L = LIB[key];
+  const m = opts.m !== undefined ? opts.m : L.m;
+  const b = {
+    id: S.nextId++, key, name: opts.name || uniqueName(L.name),
+    m, m0: m, R: key === 'custom' ? customRadius(m) : L.R, fixedR: false,
+    x, y, vx, vy, c1: L.c1, c2: L.c2, minPx: L.minPx || 3,
+    trail: [], byUser: !!opts.byUser
+  };
+  S.bodies.push(b);
+  onBodiesChanged();
+  return b;
+}
+const bodyById = id => S.bodies.find(b => b.id === id) || null;
+function removeBody(id){
+  const i = S.bodies.findIndex(b => b.id === id);
+  if (i < 0) return;
+  S.bodies.splice(i, 1);
+  if (S.selectedId === id) S.selectedId = null;
+  onBodiesChanged();
+}
+function clearAll(){
+  S.bodies = []; S.selectedId = null; S.nameCount = {}; S.t = 0; S.circStreak = 0;
+  onBodiesChanged(); resetHistory();
+}
+function onBodiesChanged(){
+  calibrateArrows();
+  ensurePair();
+  S.sig = null; // forces select rebuilds
+}
+
+function computeForces(){
+  const out = new Map();
+  const B = S.bodies, n = B.length;
+  for (const b of B) out.set(b.id, { b, pulls: [], fx: 0, fy: 0, Fnet: 0, a: 0 });
+  for (let i = 0; i < n; i++){
+    for (let j = i + 1; j < n; j++){
+      const A = B[i], C = B[j];
+      const dx = C.x - A.x, dy = C.y - A.y;
+      const r2 = dx*dx + dy*dy;
+      if (r2 === 0) continue;
+      const r = Math.sqrt(r2);
+      const F = G * A.m * C.m / r2;
+      const ux = dx / r, uy = dy / r;
+      const eA = out.get(A.id), eC = out.get(C.id);
+      eA.pulls.push({ src: C, F, ux, uy, r });
+      eA.fx += F * ux; eA.fy += F * uy;
+      eC.pulls.push({ src: A, F, ux: -ux, uy: -uy, r });
+      eC.fx -= F * ux; eC.fy -= F * uy;
+    }
+  }
+  for (const e of out.values()){
+    e.Fnet = Math.hypot(e.fx, e.fy);
+    e.a = e.Fnet / e.b.m;
+  }
+  return out;
+}
+function pairForce(a, b){
+  const dx = b.x - a.x, dy = b.y - a.y, r = Math.hypot(dx, dy);
+  return { r, F: G * a.m * b.m / (r*r), onA: {x: dx/r, y: dy/r}, onB: {x: -dx/r, y: -dy/r} };
+}
+const surfaceG = (M, R) => G * M / (R * R);
+const weightN = (mass, g) => mass * g;
+
+function accelAll(){
+  const B = S.bodies, n = B.length;
+  for (const b of B){ b.ax = 0; b.ay = 0; }
+  for (let i = 0; i < n; i++){
+    for (let j = i + 1; j < n; j++){
+      const A = B[i], C = B[j];
+      const dx = C.x - A.x, dy = C.y - A.y;
+      const r2 = dx*dx + dy*dy;
+      if (r2 === 0) continue;
+      const r = Math.sqrt(r2), inv = G / (r2 * r);
+      A.ax += inv * C.m * dx; A.ay += inv * C.m * dy;
+      C.ax -= inv * A.m * dx; C.ay -= inv * A.m * dy;
+    }
+  }
+}
+function maxStep(){
+  const B = S.bodies, n = B.length;
+  let h = Infinity;
+  for (let i = 0; i < n; i++){
+    for (let j = i + 1; j < n; j++){
+      const dx = B[j].x - B[i].x, dy = B[j].y - B[i].y;
+      const r2 = dx*dx + dy*dy; if (r2 === 0) continue;
+      const r = Math.sqrt(r2);
+      const t = 0.01 * Math.sqrt(r2 * r / (G * (B[i].m + B[j].m)));
+      if (t < h) h = t;
+    }
+  }
+  return h;
+}
+function leapfrog(h){
+  const B = S.bodies;
+  accelAll();
+  for (const b of B){ b.vx += 0.5*h*b.ax; b.vy += 0.5*h*b.ay; b.x += h*b.vx; b.y += h*b.vy; }
+  accelAll();
+  for (const b of B){ b.vx += 0.5*h*b.ax; b.vy += 0.5*h*b.ay; }
+}
+function radiusM(b){ return S.trueScale ? b.R : Math.max(b.R, toyPx(b) * S.sceneMpp); }
+function toyPx(b){ return Math.max(b.minPx, clamp(3 + 2.2 * (Math.log10(b.m) - 19), 3, 28)); }
+function collR(b){ return S.trueScale ? Math.max(b.R, 0.25 * S.sceneMpp) : radiusM(b); }
+
+function mergePair(A, C){
+  const big = A.m >= C.m ? A : C, small = big === A ? C : A;
+  const m = A.m + C.m;
+  const nb = {
+    x: (A.m*A.x + C.m*C.x) / m, y: (A.m*A.y + C.m*C.y) / m,
+    vx: (A.m*A.vx + C.m*C.vx) / m, vy: (A.m*A.vy + C.m*C.vy) / m
+  };
+  big.x = nb.x; big.y = nb.y; big.vx = nb.vx; big.vy = nb.vy;
+  big.R = Math.cbrt(A.R**3 + C.R**3); big.fixedR = true;
+  big.m = m; big.m0 = m;
+  if (S.selectedId === small.id) S.selectedId = big.id;
+  const i = S.bodies.indexOf(small); S.bodies.splice(i, 1);
+  onBodiesChanged();
+  S.lastMerge = { big: big.name, small: small.name, t: S.t };
+  murphySay(`${small.name} crashed into ${big.name} and they merged. Momentum is conserved.`, 8000, 'worried');
+}
+function doMerges(){
+  if (!S.merge) return;
+  let again = true;
+  while (again){
+    again = false;
+    const B = S.bodies;
+    for (let i = 0; i < B.length && !again; i++){
+      for (let j = i + 1; j < B.length; j++){
+        const d = Math.hypot(B[j].x - B[i].x, B[j].y - B[i].y);
+        if (d < collR(B[i]) + collR(B[j])){ mergePair(B[i], B[j]); again = true; break; }
+      }
+    }
+  }
+}
+// advance the simulation by dt seconds of simulated time
+function stepSim(dt){
+  if (!S.bodies.length){ S.t += dt; return 0; }
+  let remaining = dt, n = 0;
+  while (remaining > 1e-9 && n < 3000){
+    const h = Math.min(remaining, maxStep());
+    if (S.bodies.length < 2){
+      for (const b of S.bodies){ b.x += b.vx * remaining; b.y += b.vy * remaining; }
+      remaining = 0; break;
+    }
+    leapfrog(h); remaining -= h; n++;
+    doMerges();
+  }
+  S.t += dt - remaining;
+  return remaining;
+}
+
+function centerOfMass(){
+  let M = 0, x = 0, y = 0, vx = 0, vy = 0;
+  for (const b of S.bodies){ M += b.m; x += b.m*b.x; y += b.m*b.y; vx += b.m*b.vx; vy += b.m*b.vy; }
+  if (!M) return { x:0, y:0, vx:0, vy:0, M:0 };
+  return { x:x/M, y:y/M, vx:vx/M, vy:vy/M, M };
+}
+function zeroMomentum(){
+  const c = centerOfMass();
+  for (const b of S.bodies){ b.vx -= c.vx; b.vy -= c.vy; }
+}
+function strongestPuller(b){
+  let best = null, bestA = -1;
+  for (const o of S.bodies){
+    if (o === b) continue;
+    const r2 = (o.x-b.x)**2 + (o.y-b.y)**2; if (r2 === 0) continue;
+    const a = G * o.m / r2;
+    if (a > bestA){ bestA = a; best = o; }
+  }
+  return best;
+}
+function makeCircularOrbit(id, parentId, dir = 1){
+  const b = bodyById(id);
+  const p = parentId ? bodyById(parentId) : strongestPuller(b);
+  if (!b || !p || p === b) return false;
+  const dx = b.x - p.x, dy = b.y - p.y, r = Math.hypot(dx, dy);
+  if (r === 0) return false;
+  const v = Math.sqrt(G * (p.m + b.m) / r);
+  b.vx = p.vx + dir * (-dy / r) * v;
+  b.vy = p.vy + dir * ( dx / r) * v;
+  b.trail.length = 0;
+  return true;
+}
+function eccentricity(b, p){
+  const rx = b.x - p.x, ry = b.y - p.y, vx = b.vx - p.vx, vy = b.vy - p.vy;
+  const r = Math.hypot(rx, ry), mu = G * (p.m + b.m);
+  const h = rx*vy - ry*vx, eps = (vx*vx + vy*vy)/2 - mu/r;
+  return { e: Math.sqrt(Math.max(0, 1 + 2*eps*h*h/(mu*mu))), bound: eps < 0, eps };
+}
+
+/* ---- arrows (force scale) ---- */
+function calibrateArrows(){
+  let fmax = 0, fmin = Infinity;
+  const B = S.bodies;
+  for (let i = 0; i < B.length; i++) for (let j = i+1; j < B.length; j++){
+    const r2 = (B[j].x-B[i].x)**2 + (B[j].y-B[i].y)**2; if (r2 === 0) continue;
+    const F = G*B[i].m*B[j].m/r2;
+    if (F > fmax) fmax = F; if (F < fmin) fmin = F;
+  }
+  if (!isFinite(fmin) || fmax === 0){ S.cal = { logRef: 0, ppd: 20, fmax: 1 }; return; }
+  const span = Math.max(2, Math.log10(fmax) - Math.log10(fmin));
+  S.cal = { logRef: Math.log10(fmax), ppd: (S.arrowMax - 22) / span, fmax };
+}
+function arrowLen(F){
+  if (!(F > 0)) return 0;
+  if (S.arrowMode === 'linear') return clamp(S.arrowMax * F / S.cal.fmax, 3, 1.6 * S.arrowMax);
+  return clamp(S.arrowMax + S.cal.ppd * (Math.log10(F) - S.cal.logRef), 10, 1.6 * S.arrowMax);
+}
+function buildArrows(forces){
+  const arr = [];
+  const inPair = S.pair ? new Set([S.pairA, S.pairB]) : new Set();
+  if (S.fbd){
+    for (const b of S.bodies){
+      if (inPair.has(b.id)) continue;
+      if (S.fbdWho === 'selected' && b.id !== S.selectedId) continue;
+      const e = forces.get(b.id);
+      if (!e.pulls.length) continue;
+      const pulls = e.pulls.slice().sort((p,q) => q.F - p.F).slice(0, 5);
+      for (const p of pulls) arr.push({ bodyId:b.id, kind:'pull', src:p.src.id, srcName:p.src.name, F:p.F, ux:p.ux, uy:p.uy, len:arrowLen(p.F) });
+      arr.push({ bodyId:b.id, kind:'net', F:e.Fnet, ux:e.fx/e.Fnet, uy:e.fy/e.Fnet, len:arrowLen(e.Fnet) });
+    }
+  }
+  if (S.pair){
+    const A = bodyById(S.pairA), C = bodyById(S.pairB);
+    if (A && C && A !== C){
+      const pf = pairForce(A, C);
+      arr.push({ bodyId:A.id, kind:'pair', src:C.id, srcName:C.name, F:pf.F, ux:pf.onA.x, uy:pf.onA.y, len:arrowLen(pf.F) });
+      arr.push({ bodyId:C.id, kind:'pair', src:A.id, srcName:A.name, F:pf.F, ux:pf.onB.x, uy:pf.onB.y, len:arrowLen(pf.F) });
+    }
+  }
+  return arr;
+}
+function ensurePair(){
+  const A = bodyById(S.pairA), C = bodyById(S.pairB);
+  if (A && C && A !== C) return;
+  if (S.bodies.length < 2){ S.pairA = S.pairB = null; return; }
+  let a = bodyById(S.selectedId), c = null;
+  if (a) c = strongestPuller(a);
+  if (!a || !c){
+    const sorted = S.bodies.slice().sort((p,q) => q.m - p.m);
+    a = sorted[0]; c = sorted[1];
+  }
+  S.pairA = a.id; S.pairB = c.id;
+}
+
+/* =====================  SCENES  ===================== */
+function setScale(key, keepView){
+  const sc = SCALES[key]; if (!sc) return;
+  S.scaleKey = key; S.mpp = sc.mpp; S.sceneMpp = sc.mpp; S.timeScale = sc.ts;
+  S.pan = {x:0, y:0};
+  el('scaleSel').value = key; el('speed').value = Math.log10(S.timeScale).toFixed(2);
+  clearTrails();
+}
+function clearTrails(){ for (const b of S.bodies) b.trail.length = 0; }
+function loadPreset(key){
+  clearAll();
+  if (key === 'empty'){ setScale('solar'); S.follow = 'none'; }
+  if (key === 'sunearth'){
+    setScale('solar');
+    const sun = addBody('sun', 0, 0);
+    const e = addBody('earth', 1.496e11, 0);
+    makeCircularOrbit(e.id, sun.id); zeroMomentum();
+    S.follow = 'com';
+  }
+  if (key === 'earthmoon'){
+    setScale('moon');
+    const e = addBody('earth', 0, 0), m = addBody('moon', 3.844e8, 0);
+    makeCircularOrbit(m.id, e.id); zeroMomentum();
+    S.follow = 'com';
+  }
+  if (key === 'jupiter'){
+    setScale('jupiter');
+    const j = addBody('jupiter', 0, 0);
+    const moons = [['io',4.217e8,0],['europa',6.711e8,100],['ganymede',1.0704e9,200],['callisto',1.8827e9,300]];
+    for (const [k, r, deg] of moons){
+      const a = deg * Math.PI / 180;
+      const mo = addBody(k, r*Math.cos(a), r*Math.sin(a));
+      makeCircularOrbit(mo.id, j.id);
+    }
+    zeroMomentum(); S.follow = 'com';
+  }
+  if (key === 'murphyorbit'){
+    setScale('surface');
+    const e = addBody('earth', 0, 0), mu = addBody('murphy', 8e6, 0);
+    makeCircularOrbit(mu.id, e.id); zeroMomentum(); S.follow = 'com';
+  }
+  if (key === 'murphyfall'){
+    setScale('surface'); S.timeScale = 300; el('speed').value = Math.log10(300).toFixed(2);
+    const e = addBody('earth', 0, 0); addBody('murphy', 1.5e7, 0);
+    S.follow = 'com';
+  }
+  S.lastPreset = key;
+  el('followSel').value = S.follow;
+  calibrateArrows(); ensurePair(); ensureVisible(); clearTrails(); resetHistory();
+}
+function frameOrigin(){
+  if (S.follow === 'com' && S.bodies.length){ const c = centerOfMass(); return { x:c.x, y:c.y, vx:c.vx, vy:c.vy }; }
+  if (S.follow === 'selected'){ const b = bodyById(S.selectedId); if (b) return { x:b.x, y:b.y, vx:b.vx, vy:b.vy }; }
+  return { x:0, y:0, vx:0, vy:0 };
+}
+
+/* =====================  CANVAS & CAMERA  ===================== */
+const cv = el('cv'), ctx = cv.getContext('2d'), wrap = el('wrap');
+let W = 800, H = 500, dpr = 1;
+function resize(){
+  const r = wrap.getBoundingClientRect();
+  dpr = window.devicePixelRatio || 1; W = r.width || 800; H = r.height || 500;
+  cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+new ResizeObserver(resize).observe(wrap);
+const sx = x => W/2 + (x - S.O.x - S.pan.x) / S.mpp;
+const sy = y => H/2 - (y - S.O.y - S.pan.y) / S.mpp;
+function screenToWorld(px, py){
+  return { x: (px - W/2) * S.mpp + S.pan.x + S.O.x, y: -(py - H/2) * S.mpp + S.pan.y + S.O.y };
+}
+function zoomAt(px, py, factor){
+  const fx = (px - W/2) * S.mpp + S.pan.x, fy = -(py - H/2) * S.mpp + S.pan.y;
+  S.mpp = clamp(S.mpp * factor, 1, 1e13);
+  S.pan.x = fx - (px - W/2) * S.mpp; S.pan.y = fy + (py - H/2) * S.mpp;
+}
+function extent(){
+  if (!S.bodies.length) return null;
+  const O = frameOrigin();
+  let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+  for (const b of S.bodies){
+    const x = b.x - O.x, y = b.y - O.y;
+    x0 = Math.min(x0,x); x1 = Math.max(x1,x); y0 = Math.min(y0,y); y1 = Math.max(y1,y);
+  }
+  return { x0, x1, y0, y1 };
+}
+function ensureVisible(){
+  const e = extent(); if (!e) return;
+  const needX = (e.x1 - e.x0) / (W * 0.8), needY = (e.y1 - e.y0) / (H * 0.8);
+  const need = Math.max(needX, needY, 0);
+  const cx = (e.x0 + e.x1)/2, cy = (e.y0 + e.y1)/2;
+  const ox = Math.max(Math.abs(e.x0), Math.abs(e.x1)) / (W * 0.45), oy = Math.max(Math.abs(e.y0), Math.abs(e.y1)) / (H * 0.45);
+  const fit = Math.max(need, ox, oy);
+  if (fit > S.mpp) S.mpp = fit * 1.05;
+}
+function fitAll(){
+  const e = extent(); if (!e){ S.pan = {x:0,y:0}; return; }
+  const span = Math.max((e.x1 - e.x0) / (W * 0.8), (e.y1 - e.y0) / (H * 0.8), 1);
+  S.mpp = e.x1 === e.x0 && e.y1 === e.y0 ? S.mpp : span;
+  S.pan = { x:(e.x0 + e.x1)/2, y:(e.y0 + e.y1)/2 };
+}
+
+/* ---- stars ---- */
+const STARS = Array.from({length: 130}, (_, i) => {
+  const r = (i * 9301 + 49297) % 233280 / 233280, r2 = (i * 7919 + 1237) % 104729 / 104729, r3 = (i * 3571 + 91) % 10007 / 10007;
+  return { x: r, y: r2, a: 0.25 + 0.5 * r3, s: r3 > 0.9 ? 1.6 : 1 };
+});
+
+function drawRadiusPx(b){ return Math.max(S.trueScale ? 2 : 3, radiusM(b) / S.mpp); }
+
+function drawBodyShape(b, x, y, r){
+  const g = ctx.createRadialGradient(x - r*0.35, y - r*0.35, r*0.1, x, y, r);
+  g.addColorStop(0, b.c1); g.addColorStop(1, b.c2);
+  if (b.key === 'sun'){ ctx.save(); ctx.shadowColor = '#ffb300'; ctx.shadowBlur = Math.min(40, r * 1.2); }
+  if (b.key === 'saturn' && r > 4){
+    ctx.save(); ctx.strokeStyle = 'rgba(232,210,150,.85)'; ctx.lineWidth = Math.max(1.5, r*0.18);
+    ctx.beginPath(); ctx.ellipse(x, y, r*1.9, r*0.55, -0.35, 0, Math.PI*2); ctx.stroke(); ctx.restore();
+  }
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fillStyle = g; ctx.fill();
+  if (b.key === 'sun') ctx.restore();
+  if (b.key === 'jupiter' && r > 6){
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.clip();
+    ctx.strokeStyle = 'rgba(150,90,50,.45)'; ctx.lineWidth = r*0.16;
+    for (const k of [-0.5, -0.1, 0.35]){ ctx.beginPath(); ctx.moveTo(x - r, y + k*r); ctx.lineTo(x + r, y + k*r); ctx.stroke(); }
+    ctx.restore();
+  }
+  if (b.key === 'earth' && r > 6){
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.clip();
+    ctx.fillStyle = 'rgba(60,160,90,.8)';
+    ctx.beginPath(); ctx.ellipse(x - r*0.2, y - r*0.15, r*0.4, r*0.3, 0.4, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + r*0.35, y + r*0.3, r*0.25, r*0.2, -0.4, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  if (b.key === 'murphy') drawMurphyFace(x, y, Math.max(r, 7));
+  ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,.25)';
+  if (b.key !== 'murphy'){ ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke(); }
+}
+function drawMurphyFace(x, y, r){
+  const im = MURPHY_PICS && MURPHY_PICS.hi;
+  if (im && im.complete && im.naturalWidth){
+    ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.clip();
+    ctx.drawImage(im, x - r, y - r, 2*r, 2*r); ctx.restore();
+    ctx.lineWidth = 2; ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
+    return;
+  }
+  ctx.fillStyle = '#c8924f'; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.fill();
+}
+function labelText(text, x, y, color = '#fff', size = 12, align = 'center'){
+  size = Math.round(size * (S.fs ? 1.4 : 1));
+  ctx.font = `700 ${size}px Calibri, Carlito, "Segoe UI", Arial, sans-serif`;
+  ctx.textAlign = align; ctx.lineJoin = 'round';
+  ctx.lineWidth = 3.5; ctx.strokeStyle = 'rgba(6,22,51,.92)'; ctx.strokeText(text, x, y);
+  ctx.fillStyle = color; ctx.fillText(text, x, y);
+}
+function drawArrow(x0, y0, dx, dy, color, width){
+  const len = Math.hypot(dx, dy); if (len < 1) return;
+  const ux = dx / len, uy = dy / len, x1 = x0 + dx, y1 = y0 + dy;
+  const head = Math.min(14, Math.max(7, len * 0.35));
+  const bx = x1 - ux * head, by = y1 - uy * head;
+  ctx.lineCap = 'round';
+  for (const pass of [0, 1]){
+    ctx.strokeStyle = pass === 0 ? 'rgba(255,255,255,.85)' : color;
+    ctx.fillStyle = pass === 0 ? 'rgba(255,255,255,.85)' : color;
+    ctx.lineWidth = pass === 0 ? width + 2.5 : width;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(bx, by); ctx.stroke();
+    const w = head * 0.55 + (pass === 0 ? 1.5 : 0);
+    ctx.beginPath(); ctx.moveTo(x1 + (pass===0? ux*1.5:0), y1 + (pass===0? uy*1.5:0));
+    ctx.lineTo(bx - uy * w, by + ux * w); ctx.lineTo(bx + uy * w, by - ux * w); ctx.closePath(); ctx.fill();
+  }
+}
+function drawTrail(b){
+  const t = b.trail, n = t.length; if (n < 2) return;
+  const segs = 5, per = Math.ceil(n / segs);
+  ctx.lineWidth = 1.6; ctx.lineCap = 'round';
+  for (let s = 0; s < segs; s++){
+    const a = s * per, e = Math.min(n - 1, (s + 1) * per);
+    if (e <= a) continue;
+    ctx.strokeStyle = hexA(b.c2, 0.12 + 0.7 * (s + 1) / segs);
+    ctx.beginPath(); ctx.moveTo(sxF(t[a].x), syF(t[a].y));
+    for (let i = a + 1; i <= e; i++) ctx.lineTo(sxF(t[i].x), syF(t[i].y));
+    ctx.stroke();
+  }
+}
+// frame-coordinate versions (trail points are stored relative to the frame origin)
+const sxF = x => W/2 + (x - S.pan.x) / S.mpp;
+const syF = y => H/2 - (y - S.pan.y) / S.mpp;
+function hexA(hex, a){
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`;
+}
+
+let drag = null;
+function render(){
+  S.O = frameOrigin();
+  ctx.clearRect(0, 0, W, H);
+  const bg = ctx.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#071a3d'); bg.addColorStop(1, '#040f26');
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  for (const s of STARS){ ctx.fillStyle = `rgba(255,255,255,${s.a})`; ctx.fillRect(s.x * W, s.y * H, s.s, s.s); }
+
+  if (S.trails) for (const b of S.bodies) drawTrail(b);
+  const forces = computeForces();
+
+  // distance lines (Real numbers)
+  if (S.real){
+    const sel = bodyById(S.selectedId);
+    const pairs = [];
+    if (sel){
+      for (const o of S.bodies) if (o !== sel) pairs.push([sel, o]);
+    } else if (S.bodies.length <= 3){
+      for (let i = 0; i < S.bodies.length; i++) for (let j = i + 1; j < S.bodies.length; j++) pairs.push([S.bodies[i], S.bodies[j]]);
+    }
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = 'rgba(255,255,255,.45)'; ctx.lineWidth = 1;
+    for (const [a, c] of pairs){
+      ctx.beginPath(); ctx.moveTo(sx(a.x), sy(a.y)); ctx.lineTo(sx(c.x), sy(c.y)); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    for (const [a, c] of pairs){
+      const d = Math.hypot(c.x - a.x, c.y - a.y);
+      labelText(`r = ${fmtDistT(d)}`, (sx(a.x) + sx(c.x))/2, (sy(a.y) + sy(c.y))/2 - 6, '#d6e6ff', 12);
+    }
+  }
+
+  const arrows = buildArrows(forces); S.lastArrows = arrows;
+  // bodies
+  const pairSet = S.pair ? new Set([S.pairA, S.pairB]) : null;
+  for (const b of S.bodies){
+    const x = sx(b.x), y = sy(b.y), r = drawRadiusPx(b);
+    if (x < -300 || x > W + 300 || y < -300 || y > H + 300) continue;
+    ctx.globalAlpha = pairSet && !pairSet.has(b.id) ? 0.35 : 1;
+    drawBodyShape(b, x, y, r);
+    ctx.globalAlpha = 1;
+    if (b.id === S.selectedId){
+      ctx.setLineDash([4, 3]); ctx.strokeStyle = '#F5A300'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+    }
+    if (pairSet && pairSet.has(b.id)){
+      ctx.strokeStyle = '#ff6b60'; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.arc(x, y, r + 5, 0, Math.PI*2); ctx.stroke();
+    }
+    const down = arrows.some(a => a.bodyId === b.id && a.uy < -0.05);   // arrow points down the screen
+    if (down){
+      labelText(b.name, x, y - r - (S.real ? 22 : 9), '#fff', 13);
+      if (S.real) labelText(`m = ${fmtT(b.m)} kg`, x, y - r - 8, '#ffd9d6', 12);
+    } else {
+      labelText(b.name, x, y + r + 15, '#fff', 13);
+      if (S.real) labelText(`m = ${fmtT(b.m)} kg`, x, y + r + 29, '#ffd9d6', 12);
+    }
+  }
+
+  // velocity arrows
+  if (S.velArrows){
+    for (const b of S.bodies){
+      const vx = b.vx - S.O.vx, vy = b.vy - S.O.vy, sp = Math.hypot(vx, vy);
+      if (sp === 0) continue;
+      const px = sp * S.timeScale / S.mpp, L = Math.min(px, 120);
+      drawArrow(sx(b.x), sy(b.y), vx / sp * L, -vy / sp * L, '#3ddc97', 2.5);
+      if (S.real) labelText(`v = ${fmtT(sp)} m/s`, sx(b.x) + vx / sp * L, sy(b.y) - vy / sp * L - 8, '#aaf3d4', 11);
+    }
+  }
+
+  // force arrows
+  const geo = a => {                      // screen geometry for one arrow
+    const b = bodyById(a.bodyId); if (!b) return null;
+    const len = a.len || 1, dx = a.ux * a.len, dy = -a.uy * a.len;
+    const px = -dy / len, py = dx / len;  // screen perpendicular
+    let off = 0;
+    if (a.kind === 'net' || a.kind === 'pull'){
+      const twin = arrows.some(o => o !== a && o.bodyId === a.bodyId && o.kind !== a.kind && o.kind !== 'pair' && (o.ux * a.ux + o.uy * a.uy) > 0.995);
+      if (twin) off = a.kind === 'net' ? -4 : 4;
+    }
+    return { x: sx(b.x) + px * off, y: sy(b.y) + py * off, dx, dy, px, py, len };
+  };
+  for (const a of arrows){ const g = geo(a); if (g && a.kind === 'net') drawArrow(g.x, g.y, g.dx, g.dy, '#D9342B', 5); }
+  for (const a of arrows){
+    const g = geo(a); if (!g) continue;
+    if (a.kind === 'pull') drawArrow(g.x, g.y, g.dx, g.dy, '#3b8bff', 3);
+    if (a.kind === 'pair') drawArrow(g.x, g.y, g.dx, g.dy, '#D9342B', 5);
+  }
+  for (const a of arrows){
+    const g = geo(a); if (!g) continue;
+    const side = a.kind === 'net' ? -1 : 1;
+    const tx = g.x + g.dx * 0.6 + g.px * side * 9, ty = g.y + g.dy * 0.6 + g.py * side * 9 + 4;
+    const align = g.px * side >= 0 ? 'left' : 'right';
+    let text;
+    if (a.kind === 'pair') text = `F = ${fmtT(a.F)} N`;
+    else if (a.kind === 'net') text = S.real ? `net ${fmtT(a.F)} N` : 'net force';
+    else text = S.real ? `${fmtT(a.F)} N` : `pull from ${a.srcName}`;
+    labelText(text, tx, ty, a.kind === 'pull' ? '#b8d6ff' : '#ffb3ad', 12, align);
+  }
+
+  // launch preview
+  if (drag && (drag.type === 'launch' || drag.type === 'setv') && drag.moved){
+    const x0 = drag.sx, y0 = drag.sy, dx = drag.cx - x0, dy = drag.cy - y0;
+    if (drag.type === 'launch'){
+      const L = LIB[S.addKey];
+      ctx.globalAlpha = 0.6;
+      drawBodyShape({ key:S.addKey, c1:L.c1, c2:L.c2, m:addMass(), minPx:L.minPx || 3 }, x0, y0, Math.max(5, previewRadius()));
+      ctx.globalAlpha = 1;
+    }
+    drawArrow(x0, y0, dx, dy, '#3ddc97', 3);
+    const v = Math.hypot(dx, dy) * S.mpp / S.timeScale;
+    if (S.real) labelText(`speed ${fmtT(v)} m/s`, drag.cx + 10, drag.cy - 10, '#aaf3d4', 13, 'left');
+  }
+}
+function addMass(){ return S.addKey === 'custom' ? Math.pow(10, S.customLog) : LIB[S.addKey].m; }
+function previewRadius(){
+  const L = LIB[S.addKey];
+  const tmp = { m: addMass(), minPx: L.minPx || 3, R: S.addKey === 'custom' ? customRadius(addMass()) : L.R };
+  return Math.max(3, radiusM(tmp) / S.mpp);
+}
+
+/* =====================  INTERACTION  ===================== */
+function canvasPos(e){ const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+function hitTest(px, py){
+  let best = null, bd = Infinity;
+  for (const b of S.bodies){
+    const d = Math.hypot(sx(b.x) - px, sy(b.y) - py), r = Math.max(drawRadiusPx(b), 9);
+    if (d <= r + 3 && d < bd){ best = b; bd = d; }
+  }
+  return best;
+}
+cv.addEventListener('pointerdown', e => {
+  cv.setPointerCapture(e.pointerId); cv.focus({ preventScroll: true });
+  const p = canvasPos(e);
+  if (e.shiftKey || S.tool === 'pan' || e.button === 1 || e.button === 2){
+    drag = { type:'pan', sx:p.x, sy:p.y, cx:p.x, cy:p.y, pan0:{ ...S.pan }, moved:false }; return;
+  }
+  const hit = hitTest(p.x, p.y);
+  drag = { type: hit ? 'setv' : 'launch', body: hit ? hit.id : null, sx: hit ? sx(hit.x) : p.x, sy: hit ? sy(hit.y) : p.y, cx:p.x, cy:p.y, moved:false };
+});
+cv.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const p = canvasPos(e); drag.cx = p.x; drag.cy = p.y;
+  if (drag.type === 'pan'){
+    drag.moved = true;
+    S.pan.x = drag.pan0.x - (p.x - drag.sx) * S.mpp; S.pan.y = drag.pan0.y + (p.y - drag.sy) * S.mpp;
+  } else if (Math.hypot(p.x - drag.sx, p.y - drag.sy) > 6) drag.moved = true;
+});
+cv.addEventListener('pointerup', e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (d.type === 'pan') return;
+  const vFrame = frameOrigin();
+  const dx = d.cx - d.sx, dy = d.cy - d.sy;
+  const v = { x: vFrame.vx + dx * S.mpp / S.timeScale, y: vFrame.vy - dy * S.mpp / S.timeScale };
+  if (d.type === 'setv'){
+    const b = bodyById(d.body); if (!b) return;
+    if (d.moved){ b.vx = v.x; b.vy = v.y; b.byUser = true; b.trail.length = 0; afterEdit(); murphySay('New velocity set. Watch how gravity bends its path.', 7500, 'happy'); }
+    else selectBody(b.id, true);
+    return;
+  }
+  const w = screenToWorld(d.sx, d.sy);
+  placeBody(w.x, w.y, d.moved ? v : null);
+});
+cv.addEventListener('contextmenu', e => e.preventDefault());
+cv.addEventListener('wheel', e => {
+  e.preventDefault(); const p = canvasPos(e);
+  zoomAt(p.x, p.y, e.deltaY > 0 ? 1.15 : 1 / 1.15); clearTrailsIfFollowing();
+}, { passive: false });
+function clearTrailsIfFollowing(){ /* trails are stored in frame coordinates, so zoom/pan never invalidates them */ }
+
+function placeBody(x, y, v){
+  const key = S.addKey;
+  const opts = { byUser: true };
+  if (key === 'custom'){ opts.m = Math.pow(10, S.customLog); }
+  const b = addBody(key, x, y, v ? v.x : 0, v ? v.y : 0, opts);
+  if (!v){
+    const o = frameOrigin(); b.vx = o.vx; b.vy = o.vy;
+    if (S.autoOrbit && S.bodies.length > 1){ makeCircularOrbit(b.id, null, 1); }
+  }
+  if (S.bodies.length === 1) murphySay('Add a second body and watch them pull on each other.');
+  else if (v) murphySay('Launched! A faster start makes a wider orbit. A slower start makes it fall in.', 7500, 'happy');
+  else if (S.autoOrbit) murphySay('Auto circular orbit: its speed is just right for a round path.');
+  else murphySay('It starts at rest, so gravity will pull it straight in. Try dragging to give it a sideways launch.');
+  selectBody(b.id, false);
+  afterEdit();
+  return b;
+}
+function selectBody(id, switchTab){
+  S.selectedId = id; S.sig = null;
+  if (S.follow === 'selected') clearTrails();
+  if (switchTab) showTab('body');
+  syncSelectedControls(true);
+}
+
+/* =====================  MURPHY  ===================== */
+const MURPHY_IMG = {"hi": "data:image/jpeg;base64,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", "happy": "data:image/jpeg;base64,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", "worried": "data:image/jpeg;base64,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", "eyes": "data:image/jpeg;base64,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", "side": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCABwAHADASIAAhEBAxEB/8QAHAAAAgIDAQEAAAAAAAAAAAAABAUDBgECBwgA/8QANhAAAgEDAwIFAQcEAQUBAAAAAQIDAAQRBRIhMUEGE1FhcSIHMoGRobHRFCPB8EIVJDND4fH/xAAYAQADAQEAAAAAAAAAAAAAAAABAgMABP/EAB0RAAMBAQEBAQEBAAAAAAAAAAABEQIhEjEDQVH/2gAMAwEAAhEDEQA/ALLp9hbrIrCIjjll68U8toGWTCHcvXOK00+NVQKVKn4ppbqis7Hg4wPmudIu2arAplDMpBXjNZuRicn1OP4ouKQbVyKw0aThWH0t3FYWgMhZHWQdRxiirWETgMMkn1qc27uoVlUD1FExRKkZA4wMCtDNgdxZBerhgPTtUD25ER2sce4o6TPQMMDqO1BTyPHkKyAfNaGoNHCFbLsqv3OMVma0jb6sKzdmzioJnd0KbSxHQ46Gl+68tySQxjPXPIrfA/TS805vrZZZkz95N2QPcVUvFGg31zbFNsdymMEI+1mHuD3q9xXaSx7ZCNwGRnqR3/EUrvEDgwkghR9OeePasFU81eJ9Hn02+fzbWWOM8JvB/eksexFywBfvXb/F+grqFrLbymRX+9G2CAp7fIrjGq2f9NO8EilJU4Ixjmmxuon+uPLp68ivhMygoiN2BPIpgsZkTKema3kjjWMbQuR7Vm3lXB24xnkDtWgWyXbwpXp1rUsFbcuQfT1qcbcErjB7UNduiAEsMntQZkGRTZIyMVrNMpP8UBBOkinDgAdaW3upopIQggdvatTQbSnOSrYHvS+Q/UDkH5oO21JJm2hiGHY0aSki4ZQG9fWsE1MhaQbCBkdjwTWPPljywUMvdT3FDyTGKUbUGRzXwuxO210Mb9j2NChSBLk28zEfcyeBnoaV3Fx5J8hZjvQ5UsOcelH3tvlQ65HYnHIPuO9V/UXdZld9uRw380jZRImu7m68tsEbsZGO/wCfFcX+0dsaoSYwJmG4Oq8Ovx2NdfWRm2SLKdqnbJGwzjPQ/n+9ULx5olzd2kbQRmWZQWj2nkqeo9+RQy4zaVydq1HVooM+fJtA6nNAWfiezNwqJIdzdNwwD+NVDxGJ7qIGYyRwGRVZ1XJweuP596YaV5SoINO01BEpH1CdS3yVJJz84qt/okL2dTVkwp49qX6heMkYbBZRzWY9MZkDLNITjO0jmir/AEonT/pOXxyPak0mwKIq7a75crAAhVO1wppJfayscrKsvG/Gf2FRa7bTWdy7RK5Y8YHQ+9VSaaQYjlUyTSEBE6HPT9aOBmi5afqJEuGfPcECrhZ3Ze3iY5yetctvLO40LXUsb+8gT+yJWbkqCR93jJ9OfWrPouqxvaR7pMlZNoOeDwf4oupwEqpd4HDozNndn9KgUmXO3OQcdO9Ai7ztbGF9R1o1ImaRXDgr37GlZiV5POikB4YEGq1rJXzoycYk+nHoasFyTuxGdpx1PNVTxPDJOqBOJEG8Eeo/zSt3g+UBQyBPOjfl4/oIz1XtW+oyCa0gULuYE4YDqO4pZLOJhDOHUSnMM+fXGQabKfLiWOQhzzhlPGSc5/ahvg2OhmvXtxfSGx0zSnuUb6GdnCIPf2Hzj4onwz4aGjx+bFb2MM7HLbDuPvzRttpUsABEhY9OR/FCa7rdnpEHm6hcLbqhxuY9fYDqarGyb0lxFjju/Mk2rhXXqB0phHMzx5Y5JGAPU1x2X7TtIijn/pmkaU8IwXjHvTTw/wCPYLqHYZVMzE47U6zCTZZfEGnNOhVHUSjnNUPVdMmt51u3KNdQktHIuCR8g9fmr1bSPONxOVPf1+KmudOSePbJlBnOQ2DSSOoot8jOM+Ir6bxDPC0kSRXUMflPJEzZkGepB7596Y+EtNvrfT7pZhLJbllkDEYZGHfHoauOpaDbQSNLBYyyseS6zKOfjvRfha1adpDKHSNRgqTzW1u8GWOeibTpXS1j8070ZQUfHBptb3q48uQ4PYilflHTLx4kbfYSfUFbnY3f4BouJoDPsKhcjIJNI2aGL+9WDHmMeehHIpTq04kjEkb8YyG9CKYapZNPE5hLIw5GO5qvXAnNnIYlQzRvhkbgHjp7ZqTtK5kK/fS+VfsSpWK5XcoH/FgeRXzXrada25DeYjbvo+D0+aA1W7324Ea/UhDYIwQO4ND608clvE6kGByAfVGx/v5VZq/Sdh6ElQtZspO1uoOOQa8zfbDd3dx4wuUu2by7fbHEp4BUjO4fPP5V6Vurr+15cYLMeCfWvPf2u6Nef9bkuWDPEw+lhz07fhV0QObpJEpO9C2SQMNjFNdDlka6jSAtlmBA9KXxWTvKF8sspOTxyKvvhTwrcXCiaCDEO7G5qZsCR0zwxqM4s0BIZ1PBx2qzRXqyxncgDd/elGnWEdvbRx5w6jhh3onaynJIz3IqDZSBMskbjiKJj6dDQ0GYpiV+hW9+lSxx+Y+OnzWLm3MSbZGChj9LEcH2z2NK/wDR8v8AhpJGGU/eNBqssT7Y8rHjjJ4HxTu0tla2Bjk3MvDKeqmsNAj5Dhgw6rt4reUzemhcLucRqNkbKOMhs4pNqqSW0pmIj8mb6JCpPB7GmOqWstmpuLdQ6DspwR8fxQ8lwmoaZIABhl5A6expXmDJ0pWtWpaYGQBM8Fgchlbof99DVbsbgXkFxaSdeQvHQ9f3/wB5q56uynTRKThlQnHpyOn4iudecIb9mU4DEnP+/hVcqk9OHoebWoobNZB/5Puj1J/3Fcx8Z64ojS0mDuImluCSvP1KFRR+pqwI7TyA8YzwAelT3vh601iIi6G2QnHmL1xn9aONUGsw47od+sazR3KASM28SH/P6flXXtM1+1htVkWOL+kbCqYn4QkdD+P6fjSCb7PkhLR5k4OFbA59CaYaH4GKTD+olcKeGAON3sR3p2xcltt2W9RJLVw6nnHQ/wD77UUIip+oEHoRWLXTBYFf6dSqKMbR2po7xmIMwBx1x1FSY1Fqq0bhlzx1Bpii+fEUkTfGR9Sn0rSRFJUxnPofWvmuChDJwV4dfX3oBK7rdq1m7SwtJbsv3Jo2zgehB6j5/MUVpOrPqFrvfCTRtsYp6jnPwRg0TfSiZdo5U9jziq/oELWlzqaqp8hpFA9EbB4/xSWOFlHmv6WWVjKNkgGWGQy9G/DsaQPbrbvKqKFKnP4H/wC0b5rbkXkHqKXeI7tolMiDkoQR7imTok8sp/jOdItB2Ryf3Dv4zzjNc1ecyRB+p4/Y1NrmqyXlzDESeCVPvk5NCRqFiG0/+t3P7VfCiI7dZ3HTcmUDHGPyqwWoYMH/AOKEUm0WLe4lBBD9MelWS0h/7CV267jwfaubB0folRrYvHOSsnBboTRHkqsgD4A7Ul3FDgHgjKmjra7Lf25gefumq+iHkbNb5ABHPY+tCz2EboVJKMejD/NYNwyLsc5Q9CO3vX0VwXAQndnt6/FK+hQt/pLmAlchgP1rQs0rZxhvenRUtyrFW/QikurCa0JmiO6In60Pb3FJGilTAbqIqxB/tt78DNa2zRR2U0IUtPI+4+1GCUXVqmBlg4V1PJXPeoHgCzYjxvA5PvQYUz7TrR579nGTHGnTtnpQmvKjRFlQFWyPy/8AtN9PmNusikFC4xuFBahEsQ+kgxnkgmmz8FfWeYNSia21eSNvvJIV/U0XYo06lMZDKI/jnJ/zVu+0Lw1Is8up2ibkLbpFHb3qPwt4faSwMwceYG3hO+MdqutcJPPT/9k=", "proud": "data:image/jpeg;base64,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", "funny": "data:image/jpeg;base64,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"};
+const MURPHY_PICS = {};
+for (const k in MURPHY_IMG){ const im = new Image(); im.src = MURPHY_IMG[k]; MURPHY_PICS[k] = im; }
+const murphyImgTag = (mood, alt) => `<img src="${MURPHY_IMG[mood]}" alt="${alt || ''}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block">`;
+el('logo').innerHTML = murphyImgTag('hi', 'Murphy the dog'); el('murphyFace').innerHTML = murphyImgTag('hi', 'Murphy the dog');
+function setMood(mood){
+  const m = MURPHY_IMG[mood] ? mood : 'hi';
+  for (const node of [el('murphyFace'), el('logo')]){ const i = node.querySelector('img'); if (i) i.src = MURPHY_IMG[m]; }
+}
+const TIPS = [
+  'Gravity pulls every body toward every other body. Heavier bodies pull harder.',
+  'Double the distance and the pull becomes one fourth. That is the inverse-square law.',
+  'The Sun pulls on Earth. Earth pulls on the Sun just as hard. Newton\'s third law!',
+  'Mass and weight are different. Mass stays the same. Weight depends on g.',
+  'To orbit, a body has to keep falling toward the Sun while moving sideways fast enough to miss it.',
+  'Try the Pair view: both bodies feel the same force, but the lighter one accelerates more.',
+  'Turn on Real numbers to see mass, distance, force, acceleration, and g.'
+];
+let bubbleTimer = null, tipIdx = 0;
+function murphySay(text, ms = 7500, mood = 'hi'){
+  const b = el('bubble'); b.textContent = text; b.classList.add('show'); setMood(mood);
+  clearTimeout(bubbleTimer); bubbleTimer = setTimeout(() => { b.classList.remove('show'); setMood('hi'); }, ms);
+}
+el('murphyFace').addEventListener('click', () => { murphySay(TIPS[tipIdx++ % TIPS.length], 9000, tipIdx % 2 ? 'eyes' : 'happy'); });
+el('logo').addEventListener('click', () => murphySay('Woof! I am Murphy. Pick a body and click the space to add it.'));
+
+/* =====================  UI WIRING  ===================== */
+function setToggle(id, on){ el(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
+function wireToggle(id, key, after){
+  el(id).addEventListener('click', () => {
+    S[key] = !S[key]; setToggle(id, S[key]); if (after) after(S[key]);
+  });
+}
+function showTab(name){
+  for (const t of ['body','pair','weigh','chal']){
+    const on = t === name;
+    el('t-' + t).setAttribute('aria-selected', on ? 'true' : 'false');
+    el('tab-' + t).hidden = !on;
+  }
+  if (name === 'weigh') renderWeigh();
+}
+for (const t of ['body','pair','weigh','chal']) el('t-' + t).addEventListener('click', () => showTab(t));
+
+wireToggle('tgReal', 'real', on => {
+  if (on) murphySay('These use the real G and real masses. Notice how huge the forces get!', 7500, 'eyes');
+  el('allBodies').hidden = !on; renderSide();
+});
+wireToggle('tgFbd', 'fbd', on => {
+  calibrateArrows();
+  if (on && S.bodies.length > 3 && S.fbdWho === 'all'){
+    S.fbdWho = 'selected'; el('fbdWho').value = 'selected';
+    if (!bodyById(S.selectedId)){
+      const sorted = S.bodies.slice().sort((a, b) => b.m - a.m);
+      selectBody((sorted[1] || sorted[0]).id, false);
+    }
+    murphySay('That is a lot of bodies, so I am showing the forces on one body at a time. Click another body to switch.', 10000);
+  } else if (on) murphySay('Blue arrows are the pulls. The red arrow is the net force. Arrow length is logarithmic.', 7500, 'side');
+  updateArrowRow();
+});
+wireToggle('tgPair', 'pair', on => {
+  ensurePair(); updateArrowRow(); calibrateArrows();
+  if (on){
+    if (S.bodies.length < 2){ murphySay('Pair view needs two bodies. Add another one.'); }
+    else { showTab('pair'); murphySay('Newton\'s third law: the force on each body is the same size.', 7500, 'eyes'); }
+  } else showTab('body');
+  renderSide();
+});
+wireToggle('tgTrue', 'trueScale', on => {
+  if (on) murphySay('At true size, planets are tiny dots. The space between them is huge!', 7500, 'funny');
+  calibrateArrows();
+});
+wireToggle('tgTrails', 'trails', on => { if (!on) clearTrails(); });
+wireToggle('tgVel', 'velArrows');
+wireToggle('tgAuto', 'autoOrbit', on => { if (on) murphySay('Click to add a body and it will start in a circular orbit around its strongest pull.'); });
+wireToggle('tgMerge', 'merge');
+wireToggle('tgChal', 'challenges', on => {
+  el('t-chal').hidden = !on;
+  if (on){ renderChallenges(); showTab('chal'); } else showTab('body');
+});
+function updateArrowRow(){
+  const show = S.fbd || S.pair;
+  el('arrowRow').classList.toggle('hidden', !show);
+  el('arrowNote').textContent = show && S.arrowMode === 'log' ? 'Arrow length is logarithmic, not proportional to force' : (show ? 'Arrow length is proportional to force' : '');
+}
+el('arrowMode').addEventListener('change', e => { S.arrowMode = e.target.value; calibrateArrows(); updateArrowRow(); });
+el('arrowMax').addEventListener('input', e => { S.arrowMax = +e.target.value; calibrateArrows(); });
+el('btnFitArrows').addEventListener('click', () => calibrateArrows());
+el('fbdWho').addEventListener('change', e => { S.fbdWho = e.target.value; });
+el('distSel').addEventListener('change', e => { S.distUnit = e.target.value; renderSide(); });
+
+el('btnPlay').addEventListener('click', () => { S.paused = !S.paused; el('btnPlay').textContent = S.paused ? 'Play' : 'Pause'; });
+el('btnSlow').addEventListener('click', () => { S.slowmo = !S.slowmo; setToggle('btnSlow', S.slowmo); });
+el('speed').addEventListener('input', e => { S.timeScale = Math.pow(10, +e.target.value); });
+el('zoomIn').addEventListener('click', () => zoomAt(W/2, H/2, 1/1.3));
+el('zoomOut').addEventListener('click', () => zoomAt(W/2, H/2, 1.3));
+el('btnFit').addEventListener('click', fitAll);
+el('btnHand').addEventListener('click', () => { S.tool = S.tool === 'pan' ? 'add' : 'pan'; setToggle('btnHand', S.tool === 'pan'); cv.style.cursor = S.tool === 'pan' ? 'grab' : 'crosshair'; });
+el('scaleSel').addEventListener('change', e => setScale(e.target.value));
+el('followSel').addEventListener('change', e => { S.follow = e.target.value; S.pan = {x:0,y:0}; clearTrails(); });
+el('presetSel').addEventListener('change', e => { if (e.target.value){ loadPreset(e.target.value); e.target.value = ''; } });
+el('btnReset').addEventListener('click', () => loadPreset(S.lastPreset));
+el('btnClear').addEventListener('click', () => { clearAll(); murphySay('Empty space. Pick a body and click to add one.'); });
+
+// chips
+const chipsEl = el('chips');
+for (const k of CHIP_ORDER){
+  const L = LIB[k], b = document.createElement('button');
+  b.className = 'chip'; b.type = 'button'; b.dataset.key = k;
+  b.setAttribute('aria-pressed', k === S.addKey ? 'true' : 'false');
+  b.innerHTML = `<i style="background:${k === 'murphy' ? `center/cover url(${MURPHY_IMG.hi})` : `radial-gradient(circle at 35% 35%,${L.c1},${L.c2})`}"></i>${L.name}`;
+  b.addEventListener('click', () => {
+    S.addKey = k;
+    for (const c of chipsEl.children) c.setAttribute('aria-pressed', c.dataset.key === k ? 'true' : 'false');
+    el('customRow').classList.toggle('hidden', k !== 'custom');
+    if (k === 'murphy') murphySay('That is me! I am 25 kg. Put me near Earth and use Pair view.', 7500, 'happy');
+  });
+  chipsEl.appendChild(b);
+}
+function updateCustomOut(){
+  const m = Math.pow(10, S.customLog);
+  el('customMassOut').innerHTML = `${fmtH(m)} kg (${fmtH(m / 5.98e24, 2)} Earths)`;
+}
+el('customMass').addEventListener('input', e => { S.customLog = +e.target.value; updateCustomOut(); });
+
+// selected-body controls
+function syncSelectedControls(force){
+  const b = bodyById(S.selectedId);
+  el('selControls').hidden = !b;
+  el('selTitle').textContent = b ? b.name : 'Click a body to select it';
+  el('selHint').hidden = !!b;
+  if (b){
+    const mul = Math.log10(b.m / b.m0);
+    if (force || document.activeElement !== el('selMul')) el('selMul').value = mul.toFixed(2);
+    el('selMulOut').innerHTML = `&times; ${fmtH(b.m / b.m0, 3)}`;
+  }
+}
+el('selMul').addEventListener('input', e => { const b = bodyById(S.selectedId); if (b){ setMassMultiplier(b.id, Math.pow(10, +e.target.value)); afterEdit(); updateHUD(); } });
+function setMassMultiplier(id, mult){
+  const b = bodyById(id); if (!b) return;
+  b.m = b.m0 * mult;
+  if (b.key === 'custom' && !b.fixedR) b.R = customRadius(b.m);
+  calibrateArrows(); S.sig = null;
+}
+el('btnCirc').addEventListener('click', () => {
+  const b = bodyById(S.selectedId); if (!b) return;
+  const pid = el('orbitParent').value;
+  if (makeCircularOrbit(b.id, pid === 'auto' ? null : +pid, 1)){ b.byUser = true; afterEdit(); murphySay('Now its speed is just right to stay at the same distance, like a circle.', 7500, 'happy'); }
+  else murphySay('Add a heavier body to orbit around first.');
+});
+el('btnStopBody').addEventListener('click', () => { const b = bodyById(S.selectedId); if (b){ b.vx = S.O.vx; b.vy = S.O.vy; afterEdit(); murphySay('Stopped. With no sideways motion, gravity pulls it straight in.'); } });
+el('btnRemove').addEventListener('click', () => { if (S.selectedId){ removeBody(S.selectedId); afterEdit(); } });
+function isTyping(e){
+  const t = e.target, tag = (t.tagName || '').toLowerCase(), type = (t.type || '').toLowerCase();
+  return tag === 'textarea' || tag === 'select' || (tag === 'input' && !['range', 'checkbox', 'button'].includes(type));
+}
+document.addEventListener('keydown', e => {
+  scrub.fast = e.shiftKey;
+  if (isTyping(e) || e.ctrlKey || e.metaKey || e.altKey || el('helpDlg').open) return;
+  switch (e.key){
+    case ' ': e.preventDefault(); if (!e.repeat) el('btnPlay').click(); break;
+    case 'ArrowLeft': case 'ArrowRight': e.preventDefault(); if (!e.repeat) scrubBegin(e.key === 'ArrowLeft' ? -1 : 1, e.shiftKey); break;
+    case 'ArrowUp': case 'ArrowDown': e.preventDefault(); changeMassKey(e.key === 'ArrowUp' ? 1 : -1, e.repeat); break;
+    case 'f': case 'F': if (!e.repeat) toggleFullscreen(); break;
+    case 'Escape': if (wrap.classList.contains('fs-fallback')) toggleFullscreen(); break;
+    case 'Delete': case 'Backspace': if (S.selectedId){ e.preventDefault(); removeBody(S.selectedId); afterEdit(); } break;
+  }
+});
+document.addEventListener('keyup', e => {
+  scrub.fast = e.shiftKey;
+  if ((e.key === 'ArrowLeft' && scrub.dir === -1) || (e.key === 'ArrowRight' && scrub.dir === 1)) scrubStop();
+  if (e.key === ' ' && !isTyping(e) && !el('helpDlg').open) e.preventDefault();      // stops a focused button from also "clicking"
+});
+window.addEventListener('blur', scrubStop);
+// a dropdown keeps keyboard focus after you choose from it, which would send the arrow keys to the dropdown (and could load a different scene)
+document.addEventListener('change', e => { if (e.target.tagName === 'SELECT') e.target.blur(); });
+el('btnFs').addEventListener('click', toggleFullscreen);
+el('fsExit').addEventListener('click', toggleFullscreen);
+el('fsPlay').addEventListener('click', () => el('btnPlay').click());
+el('fsReal').addEventListener('click', () => el('tgReal').click());
+el('fsFbd').addEventListener('click', () => el('tgFbd').click());
+el('fsPair').addEventListener('click', () => el('tgPair').click());
+for (const [id, dir] of [['fsBack', -1], ['fsFwd', 1]]){
+  const bt = el(id);
+  bt.addEventListener('pointerdown', e => { e.preventDefault(); scrubBegin(dir, false); });
+  for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) bt.addEventListener(ev, scrubStop);
+}
+
+el('btnHelp').addEventListener('click', () => el('helpDlg').showModal());
+el('btnHelpClose').addEventListener('click', () => el('helpDlg').close());
+
+/* ---- selects that depend on the body list ---- */
+function bodySig(){ return S.bodies.map(b => b.id + ':' + b.name).join('|') + '#' + S.selectedId + '#' + S.pairA + '#' + S.pairB; }
+function fillSelect(sel, items, value){
+  const prev = value !== undefined ? value : sel.value;
+  sel.innerHTML = items.map(([v, t]) => `<option value="${v}">${t}</option>`).join('');
+  if ([...sel.options].some(o => o.value === String(prev))) sel.value = prev;
+}
+function refreshSelects(){
+  const sig = bodySig();
+  if (sig === S.sig) return; S.sig = sig;
+  fillSelect(el('orbitParent'), [['auto', 'strongest pull (auto)'], ...S.bodies.filter(b => b.id !== S.selectedId).map(b => [b.id, b.name])]);
+  const items = S.bodies.map(b => [b.id, b.name]);
+  fillSelect(el('pairA'), items, S.pairA); fillSelect(el('pairB'), items, S.pairB);
+  const wv = el('worldSel').value;
+  fillSelect(el('worldSel'), [...WORLDS.map(w => ['w:' + w.key, w.name]), ...S.bodies.map(b => ['b:' + b.id, b.name + ' (sandbox)'])], wv || 'w:earth');
+  syncSelectedControls(false);
+}
+el('pairA').addEventListener('change', e => { S.pairA = +e.target.value; if (S.pairA === S.pairB){ S.pairB = (S.bodies.find(b => b.id !== S.pairA) || {}).id; } S.sig = null; calibrateArrows(); });
+el('pairB').addEventListener('change', e => { S.pairB = +e.target.value; if (S.pairA === S.pairB){ S.pairA = (S.bodies.find(b => b.id !== S.pairB) || {}).id; } S.sig = null; calibrateArrows(); });
+
+/* =====================  SIDE PANELS  ===================== */
+function renderSide(){
+  syncSelectedControls(false);
+  renderBodyPanel();
+  if (S.pair) renderPair();
+  renderPairVisibility();
+}
+function renderBodyPanel(){
+  const sel = bodyById(S.selectedId);
+  const box = el('selNumbers');
+  const forces = computeForces();
+  if (!S.real){
+    box.innerHTML = sel ? '<p class="small">Turn on <b>Real numbers</b> to see mass, distance, force, acceleration, and g for this body.</p>' : '';
+    el('allBodies').innerHTML = ''; el('allBodies').hidden = true; return;
+  }
+  el('allBodies').hidden = false;
+  if (sel){
+    const e = forces.get(sel.id);
+    const speed = Math.hypot(sel.vx - S.O.vx, sel.vy - S.O.vy);
+    const g = surfaceG(sel.m, sel.R);
+    const tb = TEXTBOOK_G[sel.key];
+    let h = `<h3>${sel.name} in numbers</h3>`;
+    h += `<div class="pull"><span>Mass</span><b>${fmtH(sel.m)} kg</b></div>`;
+    h += `<div class="pull"><span>Radius</span><b>${fmtH(sel.R)} m</b></div>`;
+    h += `<div class="pull"><span>Speed</span><b>${fmtH(speed)} m/s</b></div>`;
+    h += `<div class="eq">g at the surface = ${frac(`G &middot; M`, `r<sup>2</sup>`)} = ${frac(`(${fmtH(G)})(${fmtH(sel.m)})`, `(${fmtH(sel.R)})<sup>2</sup>`)} = <span class="key">${fmtH(g)} m/s<sup>2</sup></span></div>`;
+    if (tb) h += `<p class="small">Textbook value: ${tb} m/s<sup>2</sup></p>`;
+    if (e && e.pulls.length){
+      h += `<h3>Pulls on ${sel.name}</h3>`;
+      for (const p of e.pulls.slice().sort((a, b) => b.F - a.F))
+        h += `<div class="pull"><span>${p.src.name} &middot; r = ${fmtDistH(p.r)}</span><b>${fmtH(p.F)} N</b></div>`;
+      h += `<div class="eq">Net force = <span class="key">${fmtH(e.Fnet)} N</span></div>`;
+      h += `<div class="eq">a = ${frac('F<sub>net</sub>', 'm')} = ${frac(fmtH(e.Fnet), fmtH(sel.m))} = <span class="key">${fmtH(e.a)} m/s<sup>2</sup></span></div>`;
+    }
+    box.innerHTML = h;
+  } else box.innerHTML = '';
+  let t = '<h3>All bodies</h3><div style="overflow:auto"><table><tr><th>Body</th><th>Mass (kg)</th><th>Net force (N)</th><th>a (m/s<sup>2</sup>)</th><th>g (m/s<sup>2</sup>)</th></tr>';
+  for (const b of S.bodies){
+    const e = forces.get(b.id);
+    t += `<tr class="${b.id === S.selectedId ? 'me' : ''}"><td>${b.name}</td><td>${fmtH(b.m)}</td><td>${e.pulls.length ? fmtH(e.Fnet) : '0'}</td><td>${e.pulls.length ? fmtH(e.a) : '0'}</td><td>${fmtH(surfaceG(b.m, b.R))}</td></tr>`;
+  }
+  el('allBodies').innerHTML = t + '</table></div>';
+}
+
+function renderPairVisibility(){
+  const ok = S.pair && S.bodies.length >= 2 && bodyById(S.pairA) && bodyById(S.pairB);
+  el('pairBody').hidden = !ok;
+  el('pairOff').hidden = !!ok;
+  if (S.pair && !ok) el('pairOff').textContent = 'Pair view needs two bodies. Add another one.';
+  else el('pairOff').innerHTML = 'Turn on <b>Pair view</b> to see Newton\'s third law with two bodies.';
+}
+function pairDisc(b, cx, r){
+  if (b.key === 'murphy') return `<clipPath id="mc${cx}"><circle cx="${cx}" cy="62" r="${r}"/></clipPath><image href="${MURPHY_IMG.hi}" x="${cx - r}" y="${62 - r}" width="${2*r}" height="${2*r}" clip-path="url(#mc${cx})"/><circle cx="${cx}" cy="62" r="${r}" fill="none" stroke="#fff" stroke-width="2"/>`;
+  return `<circle cx="${cx}" cy="62" r="${r}" fill="${b.c2}" stroke="#fff" stroke-opacity=".4"/>`;
+}
+function renderPair(){
+  const A = bodyById(S.pairA), C = bodyById(S.pairB);
+  if (!A || !C || A === C) return;
+  const pf = pairForce(A, C);
+  const aA = pf.F / A.m, aC = pf.F / C.m;
+  el('pairFA').innerHTML = `<span class="key">${fmtH(pf.F)} N</span>`;
+  el('pairFB').innerHTML = `<span class="key">${fmtH(pf.F)} N</span>`;
+  el('pairDA').textContent = `toward ${C.name}`; el('pairDB').textContent = `toward ${A.name}`;
+  el('pairMA').innerHTML = `${fmtH(A.m)} kg`; el('pairMB').innerHTML = `${fmtH(C.m)} kg`;
+  el('pairAA').innerHTML = `${fmtH(aA)} m/s<sup>2</sup>`; el('pairAB').innerHTML = `${fmtH(aC)} m/s<sup>2</sup>`;
+  el('pairMath').innerHTML =
+    `<div class="eq">F = ${frac('G m<sub>A</sub> m<sub>B</sub>', 'r<sup>2</sup>')} = ${frac(`(${fmtH(G)})(${fmtH(A.m)})(${fmtH(C.m)})`, `(${fmtH(pf.r)} m)<sup>2</sup>`)} = <span class="key">${fmtH(pf.F)} N</span></div>` +
+    `<div class="eq">a<sub>A</sub> = ${frac('F', 'm<sub>A</sub>')} = ${frac(fmtH(pf.F), fmtH(A.m))} = ${fmtH(aA)} m/s<sup>2</sup></div>` +
+    `<div class="eq">a<sub>B</sub> = ${frac('F', 'm<sub>B</sub>')} = ${frac(fmtH(pf.F), fmtH(C.m))} = ${fmtH(aC)} m/s<sup>2</sup></div>`;
+  const lighter = A.m < C.m ? A : C, heavier = lighter === A ? C : A;
+  el('pairTake').innerHTML = `<span class="key">Same force, different acceleration.</span> ${lighter.name} has less mass, so it accelerates ${fmtH(heavier.m / lighter.m, 3)} times more than ${heavier.name}.`;
+  // picture
+  const rA = clamp(toyPx(A) + 4, 9, 30), rC = clamp(toyPx(C) + 4, 9, 30);
+  const L = 62;
+  el('pairSvg').innerHTML =
+    pairDisc(A, 60, rA) + pairDisc(C, 300, rC) +
+    `<defs><marker id="ah" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="#D9342B"/></marker></defs>` +
+    `<line x1="${60 + rA + 4}" y1="62" x2="${60 + rA + 4 + L}" y2="62" stroke="#D9342B" stroke-width="6" marker-end="url(#ah)"/>` +
+    `<line x1="${300 - rC - 4}" y1="62" x2="${300 - rC - 4 - L}" y2="62" stroke="#D9342B" stroke-width="6" marker-end="url(#ah)"/>` +
+    `<text x="${60 + rA + 4 + L/2}" y="48" fill="#ffb3ad" font-size="15" font-weight="700" text-anchor="middle">F</text>` +
+    `<text x="${300 - rC - 4 - L/2}" y="48" fill="#ffb3ad" font-size="15" font-weight="700" text-anchor="middle">F</text>` +
+    `<text x="60" y="108" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">${A.name}</text>` +
+    `<text x="300" y="108" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">${C.name}</text>` +
+    `<text x="180" y="18" fill="#cfe0ff" font-size="12" text-anchor="middle">r = ${fmtDistT(pf.r)}</text>`;
+}
+
+/* ---- Weigh a person ---- */
+function personMass(lb){ return lb * KG_PER_LB; }
+function weighAll(lb){
+  const m = personMass(lb), rows = [];
+  for (const w of WORLDS){
+    const gc = surfaceG(w.M, w.R), g = w.g !== null ? w.g : gc;
+    rows.push({ key:'w:' + w.key, name:w.name, g, gComputed:gc, textbook:w.g !== null, N: weightN(m, g), lb: lb * g / G_EARTH, ratio: g / G_EARTH, sandbox:false });
+  }
+  for (const b of S.bodies){
+    const g = surfaceG(b.m, b.R);
+    rows.push({ key:'b:' + b.id, name:b.name, g, gComputed:g, textbook:false, N: weightN(m, g), lb: lb * g / G_EARTH, ratio: g / G_EARTH, sandbox:true });
+  }
+  return { mass: m, rows };
+}
+function renderWeigh(){
+  const { mass, rows } = weighAll(S.weightLb);
+  el('wMass').innerHTML = `${fmtH(mass)} kg`;
+  let t = '<tr><th>World</th><th>g (m/s<sup>2</sup>)</th><th>Weight (lb)</th><th>Weight (N)</th><th>Times Earth</th></tr>';
+  const mk = r => `<tr class="${r.name === 'Earth' && !r.sandbox ? 'me' : ''}"><td>${r.name}</td><td>${fmtH(r.g)}</td><td class="lb">${fmtH(r.lb)}</td><td>${fmtH(r.N)}</td><td>${fmtH(r.ratio)}</td></tr>`;
+  t += rows.filter(r => !r.sandbox).map(mk).join('');
+  if (rows.some(r => r.sandbox)){
+    t += '<tr class="sub"><td colspan="5">From your sandbox (g from G M over r<sup>2</sup>, using each body\'s current mass)</td></tr>';
+    t += rows.filter(r => r.sandbox).map(mk).join('');
+  }
+  el('wTable').innerHTML = t;
+  renderMath();
+}
+function renderMath(){
+  const v = el('worldSel').value || 'w:earth';
+  let name, M, R, textbook = null;
+  if (v.startsWith('w:')){ const w = WORLDS.find(x => 'w:' + x.key === v); name = w.name; M = w.M; R = w.R; textbook = w.g; }
+  else { const b = bodyById(+v.slice(2)); if (!b){ el('wMath').innerHTML = ''; return; } name = b.name; M = b.m; R = b.R; }
+  const m = personMass(S.weightLb), gc = surfaceG(M, R), g = textbook !== null ? textbook : gc;
+  let h = `<div class="eq">g<sub>${name}</sub> = ${frac('G M', 'r<sup>2</sup>')} = ${frac(`(${fmtH(G)})(${fmtH(M)})`, `(${fmtH(R)})<sup>2</sup>`)} = <span class="key">${fmtH(gc)} m/s<sup>2</sup></span></div>`;
+  if (textbook !== null) h += `<p class="small">The table uses the textbook value <b>${textbook} m/s<sup>2</sup></b>. ${name === 'Earth' || name === 'Moon' ? 'The two agree after rounding.' : `${name} has no solid surface, so G M over r<sup>2</sup> depends on which radius you pick.`}</p>`;
+  h += `<div class="eq">w = m g = (${fmtH(m)} kg)(${fmtH(g)} m/s<sup>2</sup>) = <span class="key">${fmtH(m * g)} N</span></div>`;
+  h += `<div class="eq">In pounds: ${S.weightLb} lb &times; ${frac(fmtH(g), '9.81')} = <span class="key">${fmtH(S.weightLb * g / G_EARTH)} lb</span></div>`;
+  h += `<p class="small">Mass is still ${fmtH(m)} kg.</p>`;
+  el('wMath').innerHTML = h;
+}
+el('wLb').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (v > 0 && v <= 1000){ S.weightLb = v; renderWeigh(); murphySay('Your mass stays the same. Only your weight changes.', 7500, 'happy'); }
+});
+el('btnMurphyW').addEventListener('click', () => { el('wLb').value = 55; S.weightLb = 55; renderWeigh(); murphySay('I am about 25 kg. Look how little I weigh on the Moon!', 7500, 'funny'); });
+el('worldSel').addEventListener('change', renderMath);
+
+/* ---- Challenges ---- */
+const CHALLENGES = [
+  { id:'orbit', type:'auto', q:'Build a circular orbit', hint:'Clear all. Add a Sun, then add a planet and use Make circular orbit (or drag a launch). Keep it round for 4 seconds.' },
+  { id:'mass10', type:'num', q:'Earth gets 10 times more mass at the same distance from the Sun. The Sun\'s pull on Earth becomes ___ times bigger.', ans:10, tol:0.02, hint:'F = G m M over r squared. Which letters change?' },
+  { id:'dist2', type:'num', q:'Earth is twice as far from the Sun. The pull becomes ___ times what it was.', ans:0.25, tol:0.02, hint:'The distance is squared. A fraction like 1/4 works.' },
+  { id:'third', type:'num', q:'Murphy (25 kg) weighs 245 N on Earth. How many newtons does Murphy pull on Earth?', ans:245, tol:0.03, hint:'Open Pair view with Earth and Murphy. Newton\'s third law.' },
+  { id:'mars', type:'num', q:'A person weighs 100 lb on Earth. How many pounds on Mars?', ans:100 * 3.7 / 9.81, tol:0.03, hint:'Use the Weigh a person tab with 100 lb.' },
+  { id:'jup', type:'num', q:'A person weighs 100 lb on Earth. What is their mass on Jupiter, in kg?', ans:45.36, tol:0.01, hint:'Mass does not change.' }
+];
+function checkAnswer(id, text){
+  const c = CHALLENGES.find(x => x.id === id), v = parseNum(text);
+  if (!c || isNaN(v)) return false;
+  return Math.abs(v - c.ans) <= Math.abs(c.ans) * c.tol;
+}
+function renderChallenges(){
+  const done = CHALLENGES.filter(c => S.solved[c.id]).length;
+  el('chalCount').textContent = `${done} of ${CHALLENGES.length} done`;
+  el('chalList').innerHTML = CHALLENGES.map((c, i) => {
+    const ok = S.solved[c.id];
+    return `<div class="chal ${ok ? 'done' : ''}" data-id="${c.id}">
+      <div class="q">${i + 1}. ${c.q} ${ok ? '<span class="key" style="color:var(--green)">&#10003; Done</span>' : ''}</div>
+      <div class="hint">Hint: ${c.hint}</div>
+      ${c.type === 'num' && !ok ? `<div class="field"><input type="text" aria-label="Answer for challenge ${i + 1}" data-ans="${c.id}" autocomplete="off"> <button class="btn sm" data-check="${c.id}">Check</button> <span class="small" data-msg="${c.id}"></span></div>` : ''}
+    </div>`;
+  }).join('');
+}
+el('chalList').addEventListener('click', e => {
+  const id = e.target.dataset && e.target.dataset.check; if (!id) return;
+  const inp = el('chalList').querySelector(`[data-ans="${id}"]`), msg = el('chalList').querySelector(`[data-msg="${id}"]`);
+  if (checkAnswer(id, inp.value)){ S.solved[id] = true; renderChallenges(); murphySay('Correct! Nice work.', 7500, 'proud'); }
+  else msg.textContent = isNaN(parseNum(inp.value)) ? 'Enter a number.' : 'Not quite. Try again.';
+});
+function checkOrbitChallenge(dtReal){
+  if (S.solved.orbit) return;
+  let ok = false;
+  for (const b of S.bodies){
+    if (!b.byUser) continue;
+    const p = strongestPuller(b); if (!p || p.m < 10 * b.m) continue;
+    const o = eccentricity(b, p);
+    if (o.bound && o.e < 0.1){ ok = true; break; }
+  }
+  S.circStreak = ok ? S.circStreak + dtReal : 0;
+  if (S.circStreak >= 4){ S.solved.orbit = true; murphySay('Circular orbit achieved! Challenge done.', 8000, 'proud'); if (S.challenges) renderChallenges(); }
+}
+
+
+/* =====================  TIME TRAVEL (history, scrubbing)  ===================== */
+const HIST_MAX = 6000;           // about 100 seconds of recording
+let history = [], hIdx = -1;
+function snapBodies(){
+  return S.bodies.map(b => ({ id:b.id, key:b.key, name:b.name, m:b.m, m0:b.m0, R:b.R, fixedR:b.fixedR, x:b.x, y:b.y, vx:b.vx, vy:b.vy,
+    c1:b.c1, c2:b.c2, minPx:b.minPx, byUser:b.byUser, tl:b.trail.length }));
+}
+function recordSnapshot(force){
+  const sn = { t:S.t, bodies:snapBodies(), nextId:S.nextId };
+  if (hIdx >= 0 && history[hIdx] && history[hIdx].t === S.t){ if (force) history[hIdx] = sn; return; }
+  history.push(sn); hIdx = history.length - 1;
+  if (history.length > HIST_MAX){ history.splice(0, 500); hIdx = history.length - 1; }
+}
+function resetHistory(){ history = []; hIdx = -1; recordSnapshot(true); }
+function truncateIfPast(){ if (hIdx < history.length - 1) history.length = hIdx + 1; }
+function afterEdit(){ truncateIfPast(); recordSnapshot(true); }
+function trailPush(){
+  if (!S.trails) return;
+  const o = frameOrigin();
+  for (const b of S.bodies){ b.trail.push({ x: b.x - o.x, y: b.y - o.y }); if (b.trail.length > TRAIL_MAX) b.trail.shift(); }
+}
+function applySnapshot(i, dir){
+  const sn = history[i], old = new Map(S.bodies.map(b => [b.id, b]));
+  let changed = sn.bodies.length !== S.bodies.length;
+  S.bodies = sn.bodies.map(nb => {
+    const o = old.get(nb.id);
+    if (!o || o.m !== nb.m) changed = true;
+    const b = Object.assign({}, nb, { ax:0, ay:0, trail: o ? o.trail : [] });
+    delete b.tl;
+    if (dir < 0) b.trail.length = Math.min(b.trail.length, nb.tl);
+    return b;
+  });
+  S.t = sn.t; hIdx = i;
+  if (!bodyById(S.selectedId)) S.selectedId = null;
+  if (dir > 0) trailPush();
+  if (changed) onBodiesChanged();
+}
+const T_EPS = 1e-3;
+function liveForward(dt){ if (dt <= 0) return; stepSim(dt); trailPush(); recordSnapshot(); }
+function scrubTo(target){
+  if (!history.length) return;
+  if (target < S.t){
+    let i = hIdx;
+    while (i > 0 && history[i].t > target + T_EPS) i--;
+    if (i !== hIdx) applySnapshot(i, -1);
+    if (target < history[0].t) scrub.tpos = history[0].t;
+  } else {
+    if (hIdx < history.length - 1){
+      let i = hIdx;
+      while (i < history.length - 1 && history[i + 1].t <= target + T_EPS) i++;
+      if (i !== hIdx) applySnapshot(i, 1);
+      if (hIdx < history.length - 1) return;       // still inside the recording
+    }
+    liveForward(target - S.t);                        // past the recording: simulate new time
+  }
+}
+const scrub = { dir: 0, since: 0, tpos: 0, fast: false };
+const effTs = () => S.timeScale * (S.slowmo ? 0.25 : 1);
+function scrubBegin(dir, fast){
+  if (scrub.dir === dir) return;
+  scrub.dir = dir; scrub.since = performance.now(); scrub.fast = !!fast; scrub.tpos = S.t;
+  scrub.tpos += dir * 0.3 * effTs();               // a tap nudges by 0.3 s of screen time
+  scrubTo(scrub.tpos);
+}
+function scrubStop(){ scrub.dir = 0; }
+function scrubFrame(now, dtReal){
+  if (!scrub.dir || now - scrub.since < 250) return;
+  scrub.tpos += scrub.dir * dtReal * effTs() * (scrub.fast ? 4 : 1);
+  scrubTo(scrub.tpos);
+}
+
+/* ---- arrow keys change the mass of the selected body ---- */
+let lastMassHint = -1e9;
+function changeMassKey(dir, repeat){
+  const b = bodyById(S.selectedId);
+  if (!b){
+    if (performance.now() - lastMassHint > 4000){ lastMassHint = performance.now(); murphySay('Click a body first, then use the up and down arrows to change its mass.', 6000, 'eyes'); }
+    return;
+  }
+  const step = repeat ? 0.02 : 0.1;                 // a tap is x1.26 (ten taps = x10)
+  const lg = clamp(Math.log10(b.m / b.m0) + dir * step, -2, 2);
+  setMassMultiplier(b.id, Math.pow(10, lg));
+  afterEdit(); syncSelectedControls(true); updateHUD();
+}
+
+/* ---- full screen ---- */
+const isFs = () => document.fullscreenElement === wrap || wrap.classList.contains('fs-fallback');
+let fsIdleTimer = null;
+function setFsClass(){
+  wrap.classList.toggle('is-fs', isFs()); S.fs = isFs();
+  wrap.classList.remove('fs-idle'); resize(); updateHUD();
+  clearTimeout(fsIdleTimer); if (isFs()) fsIdleTimer = setTimeout(() => wrap.classList.add('fs-idle'), 3500);
+}
+async function toggleFullscreen(){
+  if (isFs()){
+    if (document.fullscreenElement){ try { await document.exitFullscreen(); } catch (e) {} }
+    wrap.classList.remove('fs-fallback'); setFsClass(); return;
+  }
+  try { if (!wrap.requestFullscreen) throw new Error('no fullscreen api'); await wrap.requestFullscreen(); }
+  catch (e) { wrap.classList.add('fs-fallback'); }
+  setFsClass();
+}
+document.addEventListener('fullscreenchange', setFsClass);
+wrap.addEventListener('pointermove', () => {
+  if (!isFs()) return;
+  wrap.classList.remove('fs-idle'); clearTimeout(fsIdleTimer);
+  fsIdleTimer = setTimeout(() => wrap.classList.add('fs-idle'), 3500);
+});
+
+/* =====================  HUD & LOOP  ===================== */
+function niceLength(target){
+  const p = Math.pow(10, Math.floor(Math.log10(target)));
+  let best = p;
+  for (const k of [1, 2, 5]) if (k * p <= target) best = k * p;
+  return best;
+}
+function updateHUD(){
+  const ts = S.timeScale * (S.slowmo ? 0.25 : 1);
+  el('hudTime').innerHTML = `1 second on screen = <b>${durationText(ts)}</b> in space &nbsp; Elapsed: ${durationText(S.t)}${S.paused ? ' &nbsp; <b>PAUSED</b>' : ''}`;
+  const L = niceLength(S.mpp * 110), px = L / S.mpp;
+  el('scaleBar').style.width = px + 'px';
+  const p = distParts(L);
+  el('scaleLbl').textContent = `${fmtT(p.v, 2)} ${p.unit}${S.trueScale ? '' : '  (bodies drawn bigger than real)'}`;
+  const sb = bodyById(S.selectedId);
+  el('hudSel').innerHTML = sb ? `${sb.name}: mass &times; ${fmtH(sb.m / sb.m0, 3)}${S.real ? ` (${fmtH(sb.m)} kg)` : ''}` : '';
+  el('hudMode').textContent = scrub.dir ? (scrub.dir < 0 ? 'Going back in time' : 'Going forward in time') : (hIdx < history.length - 1 ? 'Replaying the past' : '');
+  el('hudMode').style.display = el('hudMode').textContent ? 'block' : 'none';
+  el('fsPlay').textContent = S.paused ? 'Play' : 'Pause';
+  for (const [a, k] of [['fsReal', 'real'], ['fsFbd', 'fbd'], ['fsPair', 'pair']]) setToggle(a, S[k]);
+  el('hudHint').textContent = S.bodies.length ? '' : 'Pick a body above, then click here. Drag before you let go to launch it.';
+  el('hudHint').style.display = S.bodies.length ? 'none' : 'block';
+}
+let last = performance.now(), uiTimer = 0;
+function frame(now){
+  const dtReal = Math.min(0.05, (now - last) / 1000); last = now;
+  if (scrub.dir){
+    scrubFrame(now, dtReal);
+  } else if (!S.paused){
+    truncateIfPast();
+    stepSim(dtReal * effTs());
+    trailPush(); recordSnapshot();
+    checkOrbitChallenge(dtReal);
+  }
+  render();
+  uiTimer += dtReal;
+  if (uiTimer > 0.15){ uiTimer = 0; refreshSelects(); updateHUD(); renderSide(); if (!el('tab-weigh').hidden) renderWeigh(); }
+  requestAnimationFrame(frame);
+}
+
+/* =====================  PUBLIC API (used by the tests)  ===================== */
+window.GravityLab = {
+  G, KG_PER_LB, G_EARTH, TEXTBOOK_G, LIB, WORLDS, S,
+  addBody, removeBody, clearAll, loadPreset, setScale, stepSim, computeForces, pairForce, surfaceG, weightN,
+  hist: () => ({ len: history.length, idx: hIdx }), scrubBegin, scrubStop, toggleFullscreen, changeMassKey, afterEdit,
+  makeCircularOrbit, eccentricity, zeroMomentum, centerOfMass, strongestPuller, setMassMultiplier,
+  calibrateArrows, arrowLen, buildArrows, personMass, weighAll, drawRadiusPx, radiusM, parseNum, checkAnswer,
+  fmtT, fmtH, bodyById, selectBody, zoomAt, ensurePair, render, CHALLENGES
+};
+
+/* =====================  START  ===================== */
+resize(); updateCustomOut();
+el('speed').value = Math.log10(S.timeScale).toFixed(2);
+renderWeigh();
+loadPreset('sunearth');
+updateHUD(); refreshSelects(); renderSide();
+requestAnimationFrame(t => { last = t; frame(t); });
+setTimeout(() => murphySay('Hi! I am Murphy. Click empty space to add a body. Drag before you let go to launch it.', 9000), 600);
+})();
+</script>
+</body>
+</html>
